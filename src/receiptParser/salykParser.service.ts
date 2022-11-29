@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { map, mergeAll, Observable, reduce } from 'rxjs';
+import { exhaustAll, from, map, Observable, reduce } from 'rxjs';
 import { AxiosResponse } from 'axios';
-import { parsePdf } from './pdf2json';
+import { parsePdf } from './lib/parsePdf';
 
 const startOfItemRegex = /^\d+\. /i;
 const itemPartsRegex = /(?<position>\d+)\. (?<name>[^|]+)(?=\s).*?(?<count>\d+\.\d+)\s\*\s(?<pricePerUnit>\d+.\d+).*?(?<total>\d+\.\d+)/i;
@@ -125,10 +125,11 @@ export class SalykParser {
     return acc;
   };
 
-  parse(url: string): Observable<FinalResults> {
+  parse(url: string) {
     return this.makeRequest(url).pipe(
-      map((response) => parsePdf(response.data)),
-      mergeAll(),
+      map((response) => from(parsePdf(response.data))),
+      exhaustAll(),
+      exhaustAll(),
       reduce(this.parseLineByLine, this.finalResults),
     );
   }
