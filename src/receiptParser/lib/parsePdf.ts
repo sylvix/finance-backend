@@ -1,34 +1,32 @@
-import { Observable } from 'rxjs';
-
 const createInstance = async () => {
   const parserModule = await import('pdf2json');
   return new parserModule.default();
 };
 
-export const parsePdf = async (binaryData: Buffer) => {
+export const parsePdf = async (binaryData: Buffer): Promise<string[]> => {
   const pdfParser = await createInstance();
 
-  return new Observable<string>((subscriber) => {
+  return new Promise((resolve, reject) => {
     pdfParser.on('pdfParser_dataReady', (pdfData) => {
+      const result: string[] = [];
+
       pdfData.Pages.forEach((pageData) => {
         pageData.Texts.forEach((textItem) => {
           textItem.R.forEach((rItem) => {
-            const value = decodeURIComponent(rItem.T);
-
-            subscriber.next(value);
+            result.push(decodeURIComponent(rItem.T));
           });
         });
       });
 
-      subscriber.complete();
+      resolve(result);
     });
 
     pdfParser.on('error', (error) => {
-      subscriber.error(error);
+      reject(error);
     });
 
     pdfParser.on('pdfParser_dataError', (error) => {
-      subscriber.error(error);
+      reject(error);
     });
 
     pdfParser.parseBuffer(binaryData);

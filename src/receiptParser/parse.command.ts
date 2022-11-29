@@ -10,10 +10,8 @@ export class ParseCommand extends CommandRunner {
 
   async run(passedParam: string[]): Promise<void> {
     const url = passedParam[0];
-    await this.salykParser.parse(url);
-    this.salykParser.parse(url).subscribe(async (finalResults) => {
-      await fs.mkdir('./tmp', { recursive: true });
-      await fs.writeFile('./tmp/finalResults.json', JSON.stringify(finalResults, null, 2));
-    });
+    const finalResults = await this.salykParser.parse(url);
+    await fs.mkdir('./tmp', { recursive: true });
+    await fs.writeFile('./tmp/finalResults.json', JSON.stringify(finalResults, null, 2));
   }
 }

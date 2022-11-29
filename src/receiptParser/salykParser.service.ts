@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { exhaustAll, from, map, Observable, reduce } from 'rxjs';
+import { lastValueFrom, Observable } from 'rxjs';
 import { AxiosResponse } from 'axios';
 import { parsePdf } from './lib/parsePdf';
 
@@ -39,13 +39,9 @@ export class SalykParser {
 
   parsedResults: string[] = [];
   total = 0;
-  date: null | string = null;
-  time: null | string = null;
   paymentMethod: null | string = null;
   tempResultString = '';
   currentStringToConcat = false;
-
-  resultsDataArray: ResultsData[] = [];
 
   finalResults: FinalResults = {
     shop: '',
@@ -125,12 +121,9 @@ export class SalykParser {
     return acc;
   };
 
-  parse(url: string) {
-    return this.makeRequest(url).pipe(
-      map((response) => from(parsePdf(response.data))),
-      exhaustAll(),
-      exhaustAll(),
-      reduce(this.parseLineByLine, this.finalResults),
-    );
+  async parse(url: string) {
+    const response = await lastValueFrom(this.makeRequest(url));
+    const parsedText = await parsePdf(response.data);
+    return parsedText.reduce(this.parseLineByLine, this.finalResults);
   }
 }
