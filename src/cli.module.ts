@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
+import { DatabaseModule } from './database/database.module';
 import { ReceiptParserModule } from './receiptParser/receiptParser.module';
+import { FixturesModule } from './fixtures/fixtures.module';
 
 @Module({
-  imports: [ReceiptParserModule],
+  imports: [DatabaseModule, ReceiptParserModule, FixturesModule],
 })
 export class CliModule {}
