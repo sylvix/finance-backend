@@ -5,7 +5,8 @@ import { AxiosResponse } from 'axios';
 import { parsePdf } from './lib/parsePdf';
 
 const startOfItemRegex = /^\d+\. /i;
-const itemPartsRegex = /(?<position>\d+)\. (?<name>[^|]+)(?=\s).*?(?<count>\d+\.\d+)\s\*\s(?<pricePerUnit>\d+.\d+).*?(?<total>\d+\.\d+)/i;
+const itemPartsRegex =
+  /(?<position>\d+)\. (?<name>[^|]+)(?=\s).*?(?<count>\d+\.\d+)\s\*\s(?<pricePerUnit>\d+.\d+).*?(?<total>\d+\.\d+)/i;
 const totalRegex = /^Всего: (?<total>\d+\.\d+)/i;
 const dateRegex = /(\d{4}-\d{2}-\d{2})/i;
 const timeRegex = /(\d{1,2}:\d{2}:\d{2})/i;

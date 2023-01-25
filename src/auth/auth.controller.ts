@@ -54,10 +54,10 @@ export class AuthController {
     return user;
   }
 
+  @Post('refresh')
   @UseGuards(RefreshTokenGuard)
   @ApiCookieAuth('refresh-token')
   @HttpCode(204)
-  @Post('refresh')
   @ApiNoContentResponse({ description: 'New AccessToken has been sent with the Set-Cookie header' })
   @ApiUnauthorizedResponse({ description: 'Non-existing, incorrect or expired refresh token' })
   async refresh(@CurrentUser() user: User, @Res({ passthrough: true }) res: Response) {
@@ -65,8 +65,8 @@ export class AuthController {
     res.setHeader('Set-Cookie', accessTokenCookie);
   }
 
-  @HttpCode(204)
   @Post('logout')
+  @HttpCode(204)
   @ApiNoContentResponse({
     description: 'Unset RefreshToken cookie and removed the token from the database if it exists',
   })
