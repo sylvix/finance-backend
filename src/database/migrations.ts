@@ -1,10 +1,10 @@
 import { MigrationInterface } from 'typeorm';
-import { User1673348590792 } from './migrations/1673348590792-User';
+import { UserAndTokens1674650624399 } from './migrations/1674650624399-UserAndTokens';
 
 interface MigrationClass {
   new (): MigrationInterface;
 }
 
-const migrations: MigrationClass[] = [User1673348590792];
+const migrations: MigrationClass[] = [UserAndTokens1674650624399];
 
 export default migrations;

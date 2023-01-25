@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { User } from '../users/user.entity';
+import { UserToken } from '../users/userToken.entity';
 import { UserSubscriber } from '../users/user.subscriber';
 import migrations from './migrations';
 
@@ -21,7 +22,7 @@ import migrations from './migrations';
         username: configService.get('DB_USER'),
         password: configService.get('DB_PASS'),
         database: configService.get('DB_NAME'),
-        entities: [User],
+        entities: [User, UserToken],
         subscribers: [UserSubscriber],
         synchronize: false,
         migrations,

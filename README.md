@@ -49,7 +49,7 @@ $ npm run migration:generate --name=MigrationName
 **Warning!** This procedure will replace the contents of `src/database/migrations.ts` file!
 This file is auto-generated based on files in the `src/database/migrations` folder and is automatically updated when you generate new migration.
 
-### Create
+### Create an empty migration
 If you need to create a migration manually, you can run:
 
 ```shell
