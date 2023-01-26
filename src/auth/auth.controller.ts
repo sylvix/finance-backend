@@ -32,8 +32,8 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  @UseInterceptors(ClassSerializerInterceptor)
   @UseGuards(LocalAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
   @HttpCode(200)
   @ApiOperation({
     summary: 'User login',
