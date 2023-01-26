@@ -64,7 +64,7 @@ export class AuthService {
   async logout(user: User, refreshToken: string | undefined): Promise<void> {
     try {
       const { tokenId } = parseRefreshToken(refreshToken as string);
-      await this.userTokensService.removeById(parseInt(tokenId));
+      await this.userTokensService.removeById(tokenId);
     } catch (e) {}
   }
 

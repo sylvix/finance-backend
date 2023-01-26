@@ -19,14 +19,12 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'refresh-to
     super();
   }
 
-  async validate(request: Request): Promise<User | null> {
-    const refreshToken = request.cookies['RefreshToken'] as string;
-    console.log(refreshToken);
+  async getUserFromRefreshToken(refreshToken: string, userAgent: string) {
     if (!refreshToken) return null;
 
     const { tokenId, rawToken } = parseRefreshToken(refreshToken);
 
-    const userToken = await this.userTokensService.findByIdAndExpirationDate(parseInt(tokenId));
+    const userToken = await this.userTokensService.findByIdAndExpirationDate(tokenId);
 
     if (!userToken) return null;
 
@@ -34,12 +32,24 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'refresh-to
 
     if (!isTokenValid) return null;
 
-    const userAgent = request.headers['user-agent'];
     const clientInfo = this.deviceDetectorService.parse(userAgent);
 
-    if (!this.sameClient(userToken, clientInfo)) return null;
+    if (!this.sameClient(userToken, clientInfo)) {
+      await this.userTokensService.removeById(tokenId);
+      return null;
+    }
 
     return userToken.user;
+  }
+
+  async validate(request: Request): Promise<User | null> {
+    try {
+      const refreshToken = request.cookies['RefreshToken'] as string;
+      const userAgent = request.headers['user-agent'] as string;
+      return this.getUserFromRefreshToken(refreshToken, userAgent);
+    } catch {
+      return null;
+    }
   }
 
   sameClient(userToken: UserToken, clientInfo: ClientInfo) {

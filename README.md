@@ -36,6 +36,10 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+## Swagger
+
+Available only in development at: http://localhost:8000/api/swagger
+
 ## Migrations
 
 ### Generate
