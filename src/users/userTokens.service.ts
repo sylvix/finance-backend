@@ -12,10 +12,7 @@ export class UserTokensService {
   ) {}
 
   async findByIdAndExpirationDate(id: number): Promise<UserToken | null> {
-    return this.userTokenRepository.findOne({
-      where: { id, expiresAt: MoreThan(new Date()) },
-      relations: { user: true },
-    });
+    return this.userTokenRepository.findOneBy({ id, expiresAt: MoreThan(new Date()) });
   }
 
   async create(userTokenData: CreateUserTokenData): Promise<UserToken> {

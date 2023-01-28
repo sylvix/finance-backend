@@ -9,9 +9,6 @@ export class UserToken {
   @ManyToOne(() => User, (user) => user.tokens, { onDelete: 'CASCADE' })
   user: User;
 
-  @Column()
-  hashedToken: string;
-
   @Column({ type: 'timestamp with time zone' })
   expiresAt: Date;
 

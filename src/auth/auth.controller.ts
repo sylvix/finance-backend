@@ -23,8 +23,10 @@ import { CurrentUser } from './currentUser.decorator';
 import { User } from '../users/user.entity';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './local-auth.guard';
-import { RefreshTokenGuard } from './refreshToken.guard';
 import { LoginDto } from './dto/login.dto';
+import { JwtRefreshAuthGuard } from './jwtRefresh-auth.guard';
+import { RefreshTokenPayload } from './tokenPayload.decorator';
+import { JwtRefreshTokenPayload } from './types';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -52,8 +54,8 @@ export class AuthController {
     @Headers('user-agent') userAgent: string,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const accessTokenCookie = this.authService.getCookieWithJwtAccessToken(user);
-    const refreshTokenCookie = await this.authService.getCookieWithRefreshToken(user, userAgent);
+    const accessTokenCookie = await this.authService.getCookieWithJwtAccessToken(user.id);
+    const refreshTokenCookie = await this.authService.getCookieWithRefreshToken(user.id, userAgent);
 
     res.setHeader('Set-Cookie', [accessTokenCookie, refreshTokenCookie]);
 
@@ -61,7 +63,7 @@ export class AuthController {
   }
 
   @Post('refresh')
-  @UseGuards(RefreshTokenGuard)
+  @UseGuards(JwtRefreshAuthGuard)
   @HttpCode(204)
   @ApiCookieAuth('refresh-token')
   @ApiOperation({
@@ -73,8 +75,8 @@ export class AuthController {
     description:
       'Non-existing, incorrect or expired refresh token.\nAlso, if the device differs it will remove the token from the database.',
   })
-  async refresh(@CurrentUser() user: User, @Res({ passthrough: true }) res: Response) {
-    const accessTokenCookie = this.authService.getCookieWithJwtAccessToken(user);
+  async refresh(@RefreshTokenPayload() payload: JwtRefreshTokenPayload, @Res({ passthrough: true }) res: Response) {
+    const accessTokenCookie = await this.authService.getCookieWithJwtAccessToken(payload.userId);
     res.setHeader('Set-Cookie', accessTokenCookie);
   }
 
@@ -89,8 +91,8 @@ export class AuthController {
     description:
       'Auth cookies have been unset and the associated UserToken has been removed from the database if it existed at the time of request',
   })
-  async logout(@CurrentUser() user: User, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    await this.authService.logout(user, req.cookies['RefreshToken']);
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    await this.authService.logout(req.cookies['RefreshToken']);
     res.setHeader('Set-Cookie', this.authService.getCookiesForLogout());
   }
 }

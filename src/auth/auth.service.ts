@@ -1,15 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { randomUUID } from 'crypto';
 import { UsersService } from '../users/users.service';
 import { DeviceDetectorService } from './deviceDetector.service';
 import { User } from '../users/user.entity';
-import { JwtTokenPayload } from './types';
-import * as bcrypt from 'bcrypt';
-import { SALT_ROUNDS } from '../constants';
+import { JwtRefreshTokenPayload, JwtTokenPayload } from './types';
 import { UserTokensService } from '../users/userTokens.service';
-import { parseRefreshToken } from './helpers';
 
 @Injectable()
 export class AuthService {
@@ -32,10 +28,10 @@ export class AuthService {
     return null;
   }
 
-  getCookieWithJwtAccessToken(user: User) {
-    const payload: JwtTokenPayload = { userId: user.id };
+  async getCookieWithJwtAccessToken(userId: number) {
+    const payload: JwtTokenPayload = { userId };
     const expirationTime = this.configService.get('ACCESS_TOKEN_EXPIRATION_TIME');
-    const token = this.jwtService.sign(payload, {
+    const token = await this.jwtService.signAsync(payload, {
       secret: this.configService.get('ACCESS_TOKEN_SECRET'),
       expiresIn: `${expirationTime}s`,
     });
@@ -43,32 +39,41 @@ export class AuthService {
     return `AccessToken=${token}; HttpOnly; Path=/; Max-Age=${expirationTime}`;
   }
 
-  async getCookieWithRefreshToken(user: User, userAgent: string) {
+  async getCookieWithRefreshToken(userId: number, userAgent: string) {
     const clientInfo = this.deviceDetectorService.parse(userAgent);
-    const rawToken = randomUUID();
-    const salt = await bcrypt.genSalt(SALT_ROUNDS);
-    const hashedToken = await bcrypt.hash(rawToken, salt);
     const expirationTime = this.configService.get('REFRESH_TOKEN_EXPIRATION_TIME');
     const expiresAt = new Date(new Date().getTime() + expirationTime * 1000);
 
     const userToken = await this.userTokensService.create({
-      user,
-      hashedToken,
+      user: { id: userId },
       expiresAt,
       ...clientInfo,
     });
 
-    return `RefreshToken=${userToken.id}::${rawToken}; HttpOnly; Path=/; Max-Age=${expirationTime}`;
+    const payload: JwtRefreshTokenPayload = {
+      userId,
+      tokenId: userToken.id,
+    };
+
+    const token = await this.jwtService.signAsync(payload, {
+      secret: this.configService.get('REFRESH_TOKEN_SECRET'),
+      expiresIn: `${expirationTime}s`,
+    });
+
+    return `RefreshToken=${token}; HttpOnly; Path=/auth; Max-Age=${expirationTime}`;
   }
 
-  async logout(user: User, refreshToken: string | undefined): Promise<void> {
+  async logout(refreshToken: string | undefined): Promise<void> {
     try {
-      const { tokenId } = parseRefreshToken(refreshToken as string);
+      const { tokenId }: JwtRefreshTokenPayload = await this.jwtService.verifyAsync(refreshToken as string, {
+        secret: this.configService.get('REFRESH_TOKEN_SECRET'),
+      });
+
       await this.userTokensService.removeById(tokenId);
     } catch (e) {}
   }
 
   getCookiesForLogout() {
-    return ['AccessToken=; HttpOnly; Path=/; Max-Age=0', 'RefreshToken=; HttpOnly; Path=/; Max-Age=0'];
+    return ['AccessToken=; HttpOnly; Path=/; Max-Age=0', 'RefreshToken=; HttpOnly; Path=/auth; Max-Age=0'];
   }
 }
