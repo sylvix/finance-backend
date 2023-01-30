@@ -49,6 +49,11 @@ async function bootstrap() {
         supportedSubmitMethods: [],
       },
     });
+
+    app.enableCors({
+      origin: ['http://127.0.0.1:5173'],
+      credentials: true,
+    });
   }
 
   await app.listen(8000);

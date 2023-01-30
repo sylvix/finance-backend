@@ -1,6 +1,6 @@
 import { IsEmail, IsNotEmpty } from 'class-validator';
-import { UniqueUserEmail } from '../validators/uniqueUserEmail.validator';
-import { RegisterSecret } from '../validators/registerSecret.validator';
+import { UniqueUserEmail } from '../../users/validators/uniqueUserEmail.validator';
+import { RegisterSecret } from '../../users/validators/registerSecret.validator';
 
 export class RegisterDto {
   @IsEmail()

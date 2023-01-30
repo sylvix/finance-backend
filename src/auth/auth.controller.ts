@@ -1,4 +1,5 @@
 import {
+  Body,
   ClassSerializerInterceptor,
   Controller,
   Headers,
@@ -10,8 +11,10 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
   ApiBody,
   ApiCookieAuth,
+  ApiCreatedResponse,
   ApiNoContentResponse,
   ApiOperation,
   ApiResponse,
@@ -23,15 +26,45 @@ import { CurrentUser } from './currentUser.decorator';
 import { User } from '../users/user.entity';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './local-auth.guard';
-import { LoginDto } from './dto/login.dto';
 import { JwtRefreshAuthGuard } from './jwtRefresh-auth.guard';
 import { RefreshTokenPayload } from './tokenPayload.decorator';
 import { JwtRefreshTokenPayload } from './types';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Post('register')
+  @ApiOperation({
+    summary: 'Register new user',
+    description: 'Returns information of newly registered user.',
+  })
+  @ApiCreatedResponse({
+    type: User,
+    description: 'Returns new registered User',
+  })
+  @ApiBadRequestResponse({
+    description: 'Validation errors',
+  })
+  async register(
+    @Body() body: RegisterDto,
+    @Headers('user-agent') userAgent: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const user = await this.authService.register(body);
+
+    const cookies = [
+      await this.authService.getCookieWithRefreshToken(user.id, userAgent),
+      await this.authService.getCookieWithAccessToken(user.id),
+    ];
+
+    res.setHeader('Set-Cookie', cookies);
+
+    return user;
+  }
 
   @Post('login')
   @UseGuards(LocalAuthGuard)
@@ -54,10 +87,12 @@ export class AuthController {
     @Headers('user-agent') userAgent: string,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const accessTokenCookie = await this.authService.getCookieWithJwtAccessToken(user.id);
-    const refreshTokenCookie = await this.authService.getCookieWithRefreshToken(user.id, userAgent);
+    const cookies = [
+      await this.authService.getCookieWithAccessToken(user.id),
+      await this.authService.getCookieWithRefreshToken(user.id, userAgent),
+    ];
 
-    res.setHeader('Set-Cookie', [accessTokenCookie, refreshTokenCookie]);
+    res.setHeader('Set-Cookie', cookies);
 
     return user;
   }
@@ -76,7 +111,7 @@ export class AuthController {
       'Non-existing, incorrect or expired refresh token.\nAlso, if the device differs it will remove the token from the database.',
   })
   async refresh(@RefreshTokenPayload() payload: JwtRefreshTokenPayload, @Res({ passthrough: true }) res: Response) {
-    const accessTokenCookie = await this.authService.getCookieWithJwtAccessToken(payload.userId);
+    const accessTokenCookie = await this.authService.getCookieWithAccessToken(payload.userId);
     res.setHeader('Set-Cookie', accessTokenCookie);
   }
 

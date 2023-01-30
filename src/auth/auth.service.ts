@@ -6,6 +6,7 @@ import { DeviceDetectorService } from './deviceDetector.service';
 import { User } from '../users/user.entity';
 import { JwtRefreshTokenPayload, JwtTokenPayload } from './types';
 import { UserTokensService } from '../users/userTokens.service';
+import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +17,10 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly deviceDetectorService: DeviceDetectorService,
   ) {}
+
+  async register(registerDto: RegisterDto) {
+    return this.usersService.create(registerDto.email, registerDto.password, registerDto.displayName);
+  }
 
   async validateUser(email: string, pass: string): Promise<User | null> {
     const user = await this.usersService.findByEmail(email);
@@ -28,7 +33,7 @@ export class AuthService {
     return null;
   }
 
-  async getCookieWithJwtAccessToken(userId: number) {
+  async getCookieWithAccessToken(userId: number) {
     const payload: JwtTokenPayload = { userId };
     const expirationTime = this.configService.get('ACCESS_TOKEN_EXPIRATION_TIME');
     const token = await this.jwtService.signAsync(payload, {

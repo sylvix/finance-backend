@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { Repository } from 'typeorm';
-import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class UsersService {
@@ -26,13 +25,6 @@ export class UsersService {
       displayName,
     });
 
-    return this.usersRepository.save(user);
-  }
-
-  async register(registerDto: RegisterDto): Promise<User> {
-    delete registerDto.secret;
-
-    const user = this.usersRepository.create(registerDto);
     return this.usersRepository.save(user);
   }
 }

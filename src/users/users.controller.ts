@@ -1,10 +1,8 @@
 import {
-  Body,
   ClassSerializerInterceptor,
   Controller,
   Get,
   NotFoundException,
-  Post,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -13,9 +11,7 @@ import { TokenPayload } from '../auth/tokenPayload.decorator';
 import { JwtTokenPayload } from '../auth/types';
 import { UsersService } from './users.service';
 import {
-  ApiBadRequestResponse,
   ApiCookieAuth,
-  ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOperation,
   ApiResponse,
@@ -23,7 +19,6 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { User } from './user.entity';
-import { RegisterDto } from './dto/register.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -57,21 +52,5 @@ export class UsersController {
     }
 
     return user;
-  }
-
-  @Post('register')
-  @ApiOperation({
-    summary: 'Register new user',
-    description: 'Returns information of newly registered user.',
-  })
-  @ApiCreatedResponse({
-    type: User,
-    description: 'Returns new registered User',
-  })
-  @ApiBadRequestResponse({
-    description: 'Validation errors',
-  })
-  async register(@Body() body: RegisterDto) {
-    return this.usersService.register(body);
   }
 }
