@@ -1,7 +1,8 @@
+import { promises as fs } from 'fs';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
-import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, NestApplicationOptions, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { useContainer, ValidationError } from 'class-validator';
 
@@ -10,7 +11,16 @@ interface CustomValidationError {
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const options: NestApplicationOptions = {};
+
+  if (process.env.NODE_ENV !== 'production' && process.env.ENABLE_DEV_HTTPS === 'true') {
+    options.httpsOptions = {
+      key: await fs.readFile('./certs/cert-dev.key'),
+      cert: await fs.readFile('./certs/cert-dev.pem'),
+    };
+  }
+
+  const app = await NestFactory.create(AppModule, options);
   app.use(cookieParser());
   app.useGlobalPipes(
     new ValidationPipe({
@@ -51,7 +61,7 @@ async function bootstrap() {
     });
 
     app.enableCors({
-      origin: ['http://127.0.0.1:5173'],
+      origin: ['http://127.0.0.1:5173', 'http://localhost:5173'],
       credentials: true,
     });
   }

@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { DeviceDetectorService } from './deviceDetector.service';
 import { User } from '../users/user.entity';
-import { JwtRefreshTokenPayload, JwtTokenPayload } from './types';
+import { CookieParts, JwtRefreshTokenPayload, JwtTokenPayload } from './types';
 import { UserTokensService } from '../users/userTokens.service';
 import { RegisterDto } from './dto/register.dto';
 
@@ -41,7 +41,7 @@ export class AuthService {
       expiresIn: `${expirationTime}s`,
     });
 
-    return `AccessToken=${token}; HttpOnly; Path=/; Max-Age=${expirationTime}`;
+    return this.getCookie({ name: 'AccessToken', value: token, maxAge: expirationTime, path: '/' });
   }
 
   async getCookieWithRefreshToken(userId: number, userAgent: string) {
@@ -65,7 +65,7 @@ export class AuthService {
       expiresIn: `${expirationTime}s`,
     });
 
-    return `RefreshToken=${token}; HttpOnly; Path=/auth; Max-Age=${expirationTime}`;
+    return this.getCookie({ name: 'RefreshToken', value: token, maxAge: expirationTime, path: '/auth' });
   }
 
   async logout(refreshToken: string | undefined): Promise<void> {
@@ -79,6 +79,24 @@ export class AuthService {
   }
 
   getCookiesForLogout() {
-    return ['AccessToken=; HttpOnly; Path=/; Max-Age=0', 'RefreshToken=; HttpOnly; Path=/auth; Max-Age=0'];
+    return [
+      this.getCookie({ name: 'AccessToken', value: '', maxAge: 0, path: '/' }),
+      this.getCookie({ name: 'RefreshToken', value: '', maxAge: 0, path: '/auth' }),
+    ];
+  }
+
+  private getCookie(parts: CookieParts) {
+    const isDev = process.env.NODE_ENV !== 'production';
+
+    const cookieParts = [
+      `${parts.name}=${parts.value}`,
+      'HttpOnly',
+      `Path=${parts.path}`,
+      `SameSite=${isDev ? 'None' : 'Strict'}`,
+      'Secure',
+      `Max-Age=${parts.maxAge}`,
+    ];
+
+    return cookieParts.join('; ');
   }
 }

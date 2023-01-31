@@ -14,3 +14,10 @@ export interface ClientInfo {
   deviceBrand: string;
   deviceModel: string;
 }
+
+export interface CookieParts {
+  name: string;
+  value: string;
+  path: string;
+  maxAge: number;
+}

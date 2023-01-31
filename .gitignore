@@ -41,3 +41,7 @@ lerna-debug.log*
 
 # Local db
 pgdata
+
+# Local self-signed certificates
+certs/cert-dev.pem
+certs/cert-dev.key
