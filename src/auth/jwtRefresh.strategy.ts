@@ -16,11 +16,7 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwtRefresh')
     private readonly deviceDetectorService: DeviceDetectorService,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([
-        (request: Request) => {
-          return request?.cookies?.RefreshToken;
-        },
-      ]),
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: configService.get('REFRESH_TOKEN_SECRET'),
       passReqToCallback: true,

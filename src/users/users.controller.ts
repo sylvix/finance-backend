@@ -11,7 +11,7 @@ import { TokenPayload } from '../auth/tokenPayload.decorator';
 import { JwtTokenPayload } from '../auth/types';
 import { UsersService } from './users.service';
 import {
-  ApiCookieAuth,
+  ApiBearerAuth,
   ApiNotFoundResponse,
   ApiOperation,
   ApiResponse,
@@ -28,10 +28,10 @@ export class UsersController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  @ApiCookieAuth('access-token')
+  @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Get current user information',
-    description: 'Returns current user information based on AccessToken',
+    description: 'Returns current user information based on access token',
   })
   @ApiResponse({
     status: 200,

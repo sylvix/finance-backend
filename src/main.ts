@@ -1,8 +1,6 @@
-import { promises as fs } from 'fs';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import * as cookieParser from 'cookie-parser';
-import { BadRequestException, NestApplicationOptions, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { useContainer, ValidationError } from 'class-validator';
 
@@ -11,17 +9,8 @@ interface CustomValidationError {
 }
 
 async function bootstrap() {
-  const options: NestApplicationOptions = {};
+  const app = await NestFactory.create(AppModule);
 
-  if (process.env.NODE_ENV !== 'production' && process.env.ENABLE_DEV_HTTPS === 'true') {
-    options.httpsOptions = {
-      key: await fs.readFile('./certs/cert-dev.key'),
-      cert: await fs.readFile('./certs/cert-dev.pem'),
-    };
-  }
-
-  const app = await NestFactory.create(AppModule, options);
-  app.use(cookieParser());
   app.useGlobalPipes(
     new ValidationPipe({
       exceptionFactory: (validationErrors: ValidationError[] = []) => {
@@ -49,16 +38,12 @@ async function bootstrap() {
       .setVersion('1.0')
       .addTag('auth', 'Authentication and logout flow')
       .addTag('users', 'Users flow')
-      .addCookieAuth('AccessToken', undefined, 'access-token')
-      .addCookieAuth('RefreshToken', undefined, 'refresh-token')
+      .addBearerAuth(undefined, 'access-token')
+      .addBearerAuth(undefined, 'refresh-token')
       .build();
 
     const document = SwaggerModule.createDocument(app, options);
-    SwaggerModule.setup('api/swagger', app, document, {
-      swaggerOptions: {
-        supportedSubmitMethods: [],
-      },
-    });
+    SwaggerModule.setup('api/swagger', app, document);
 
     app.enableCors({
       origin: ['http://127.0.0.1:5173', 'http://localhost:5173'],

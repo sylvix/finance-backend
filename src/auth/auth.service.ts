@@ -4,9 +4,10 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { DeviceDetectorService } from './deviceDetector.service';
 import { User } from '../users/user.entity';
-import { CookieParts, JwtRefreshTokenPayload, JwtTokenPayload } from './types';
+import { JwtRefreshTokenPayload, JwtTokenPayload } from './types';
 import { UserTokensService } from '../users/userTokens.service';
 import { RegisterDto } from './dto/register.dto';
+import { UserResponseDto } from './dto/userResponse.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,11 +19,20 @@ export class AuthService {
     private readonly deviceDetectorService: DeviceDetectorService,
   ) {}
 
-  async register(registerDto: RegisterDto) {
-    return this.usersService.create(registerDto.email, registerDto.password, registerDto.displayName);
+  async register(registerDto: RegisterDto, userAgent: string) {
+    const user = await this.usersService.create(registerDto.email, registerDto.password, registerDto.displayName);
+
+    return this.createUserResponse(user, userAgent);
   }
 
-  async validateUser(email: string, pass: string): Promise<User | null> {
+  async createUserResponse(user: User, userAgent: string) {
+    return new UserResponseDto(user, {
+      access: await this.getAccessToken(user.id),
+      refresh: await this.getRefreshToken(user.id, userAgent),
+    });
+  }
+
+  async validateUser(email: string, pass: string) {
     const user = await this.usersService.findByEmail(email);
     const isValid = user && (await user.validatePassword(pass));
 
@@ -33,18 +43,17 @@ export class AuthService {
     return null;
   }
 
-  async getCookieWithAccessToken(userId: number) {
+  async getAccessToken(userId: number) {
     const payload: JwtTokenPayload = { userId };
     const expirationTime = this.configService.get('ACCESS_TOKEN_EXPIRATION_TIME');
-    const token = await this.jwtService.signAsync(payload, {
+
+    return await this.jwtService.signAsync(payload, {
       secret: this.configService.get('ACCESS_TOKEN_SECRET'),
       expiresIn: `${expirationTime}s`,
     });
-
-    return this.getCookie({ name: 'AccessToken', value: token, maxAge: expirationTime, path: '/' });
   }
 
-  async getCookieWithRefreshToken(userId: number, userAgent: string) {
+  async getRefreshToken(userId: number, userAgent: string) {
     const clientInfo = this.deviceDetectorService.parse(userAgent);
     const expirationTime = this.configService.get('REFRESH_TOKEN_EXPIRATION_TIME');
     const expiresAt = new Date(new Date().getTime() + expirationTime * 1000);
@@ -60,43 +69,22 @@ export class AuthService {
       tokenId: userToken.id,
     };
 
-    const token = await this.jwtService.signAsync(payload, {
+    return this.jwtService.signAsync(payload, {
       secret: this.configService.get('REFRESH_TOKEN_SECRET'),
       expiresIn: `${expirationTime}s`,
     });
-
-    return this.getCookie({ name: 'RefreshToken', value: token, maxAge: expirationTime, path: '/auth' });
   }
 
   async logout(refreshToken: string | undefined): Promise<void> {
     try {
-      const { tokenId }: JwtRefreshTokenPayload = await this.jwtService.verifyAsync(refreshToken as string, {
+      if (!refreshToken) return;
+
+      const token = refreshToken.replace(/bearer /gi, '');
+      const { tokenId }: JwtRefreshTokenPayload = await this.jwtService.verifyAsync(token, {
         secret: this.configService.get('REFRESH_TOKEN_SECRET'),
       });
 
       await this.userTokensService.removeById(tokenId);
     } catch (e) {}
-  }
-
-  getCookiesForLogout() {
-    return [
-      this.getCookie({ name: 'AccessToken', value: '', maxAge: 0, path: '/' }),
-      this.getCookie({ name: 'RefreshToken', value: '', maxAge: 0, path: '/auth' }),
-    ];
-  }
-
-  private getCookie(parts: CookieParts) {
-    const isDev = process.env.NODE_ENV !== 'production';
-
-    const cookieParts = [
-      `${parts.name}=${parts.value}`,
-      'HttpOnly',
-      `Path=${parts.path}`,
-      `SameSite=${isDev ? 'None' : 'Strict'}`,
-      'Secure',
-      `Max-Age=${parts.maxAge}`,
-    ];
-
-    return cookieParts.join('; ');
   }
 }
