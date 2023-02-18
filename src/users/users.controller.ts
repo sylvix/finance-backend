@@ -1,24 +1,22 @@
 import {
+  Body,
   ClassSerializerInterceptor,
   Controller,
   Get,
-  NotFoundException,
+  Patch,
+  UploadedFile,
+  UseFilters,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { TokenPayload } from '../auth/tokenPayload.decorator';
-import { JwtTokenPayload } from '../auth/types';
 import { UsersService } from './users.service';
-import {
-  ApiBearerAuth,
-  ApiNotFoundResponse,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-  ApiUnauthorizedResponse,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { User } from './user.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UserGuard } from '../auth/user.guard';
+import { CurrentUser } from '../auth/currentUser.decorator';
+import { EditProfileDto } from './dto/editProfile.dto';
+import { FileRemovalFilter } from './fileRemoval.filter';
 
 @ApiTags('users')
 @Controller('users')
@@ -27,7 +25,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('me')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserGuard)
   @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Get current user information',
@@ -36,21 +34,36 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     type: User,
-    description: 'Returns logged in User',
-  })
-  @ApiNotFoundResponse({
-    description: 'Error if user does not exist in the database',
+    description: 'Returns logged in `User`',
   })
   @ApiUnauthorizedResponse({
     description: 'Incorrect access token',
   })
-  async me(@TokenPayload() tokenPayload: JwtTokenPayload) {
-    const user = this.usersService.findById(tokenPayload.userId);
-
-    if (!user) {
-      throw new NotFoundException('User does not exist');
-    }
-
+  async me(@CurrentUser() user: User) {
     return user;
+  }
+
+  @Patch('profile')
+  @UseGuards(UserGuard)
+  @UseInterceptors(FileInterceptor('avatar'))
+  @UseFilters(FileRemovalFilter)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary: 'Edit current user profile',
+  })
+  @ApiResponse({
+    status: 200,
+    type: User,
+    description: 'Returns updated `User`',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Incorrect access token',
+  })
+  async editProfile(
+    @CurrentUser() user: User,
+    @UploadedFile() avatar: Express.Multer.File,
+    @Body() body: EditProfileDto,
+  ) {
+    return this.usersService.editProfile(user, body, avatar);
   }
 }

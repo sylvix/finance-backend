@@ -6,11 +6,21 @@ import { UserTokensService } from './userTokens.service';
 import { UserToken } from './userToken.entity';
 import { UsersController } from './users.controller';
 import { UniqueUserEmailConstraint } from './validators/uniqueUserEmail.validator';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RegisterSecretConstraint } from './validators/registerSecret.validator';
+import { MulterModule } from '@nestjs/platform-express';
+import { multerOptionsFactory } from './multerOptions.factory';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, UserToken]), ConfigModule],
+  imports: [
+    TypeOrmModule.forFeature([User, UserToken]),
+    ConfigModule,
+    MulterModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: multerOptionsFactory,
+      inject: [ConfigService],
+    }),
+  ],
   providers: [UsersService, UserTokensService, UniqueUserEmailConstraint, RegisterSecretConstraint],
   exports: [UsersService, UserTokensService],
   controllers: [UsersController],

@@ -9,10 +9,11 @@ import { AuthController } from './auth.controller';
 import { DeviceDetectorService } from './deviceDetector.service';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtRefreshStrategy } from './jwtRefresh.strategy';
+import { UserGuard } from './user.guard';
 
 @Module({
   imports: [UsersModule, PassportModule, ConfigModule, JwtModule],
-  providers: [AuthService, LocalStrategy, DeviceDetectorService, JwtStrategy, JwtRefreshStrategy],
+  providers: [AuthService, LocalStrategy, DeviceDetectorService, JwtStrategy, JwtRefreshStrategy, UserGuard],
   controllers: [AuthController],
 })
 export class AuthModule {}

@@ -1,0 +1,30 @@
+import { ExecutionContext, Injectable } from '@nestjs/common';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import { UsersService } from '../users/users.service';
+import { JwtTokenPayload } from './types';
+
+@Injectable()
+export class UserGuard extends JwtAuthGuard {
+  constructor(private readonly usersService: UsersService) {
+    super();
+  }
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const result = await (super.canActivate(context) as Promise<boolean>);
+
+    if (!result) {
+      return false;
+    }
+
+    const request = context.switchToHttp().getRequest();
+    const payload = request.user as JwtTokenPayload;
+    const user = await this.usersService.findById(payload.userId);
+
+    if (!user) {
+      return false;
+    }
+
+    request.user = user;
+    return true;
+  }
+}
