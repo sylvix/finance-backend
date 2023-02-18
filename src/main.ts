@@ -3,13 +3,15 @@ import { AppModule } from './app.module';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { useContainer, ValidationError } from 'class-validator';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { ConfigService } from '@nestjs/config';
 
 interface CustomValidationError {
   [key: string]: string[];
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -44,6 +46,9 @@ async function bootstrap() {
 
     const document = SwaggerModule.createDocument(app, options);
     SwaggerModule.setup('api/swagger', app, document);
+
+    const config = app.get(ConfigService);
+    app.useStaticAssets(config.get<string>('MEDIA_DEST') || 'public');
 
     app.enableCors({
       origin: ['http://127.0.0.1:5173', 'http://localhost:5173'],
