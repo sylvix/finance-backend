@@ -1,4 +1,6 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Exclude } from 'class-transformer';
+import { ApiHideProperty } from '@nestjs/swagger';
 import { User } from './user.entity';
 
 @Entity()
@@ -6,6 +8,8 @@ export class UserToken {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Exclude()
+  @ApiHideProperty()
   @ManyToOne(() => User, (user) => user.tokens, { onDelete: 'CASCADE' })
   user: User;
 

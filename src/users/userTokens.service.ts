@@ -24,4 +24,16 @@ export class UserTokensService {
   async removeById(id: number) {
     return this.userTokenRepository.delete({ id });
   }
+
+  async findByUserId(userId: number) {
+    return this.userTokenRepository.findBy({ user: { id: userId } });
+  }
+
+  async removeByUserIdAndId(id: number, userId: number) {
+    return this.userTokenRepository.delete({ id, user: { id: userId } });
+  }
+
+  async removeAllByUserId(userId: number) {
+    return this.userTokenRepository.delete({ user: { id: userId } });
+  }
 }

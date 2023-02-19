@@ -1,6 +1,6 @@
 import { IsEmail, IsNotEmpty } from 'class-validator';
 import { UniqueUserEmail } from '../validators/uniqueUserEmail.validator';
-import { PartialType } from '@nestjs/swagger';
+import { ApiProperty, PartialType } from '@nestjs/swagger';
 
 export class EditProfileValidationDto {
   @IsEmail()
@@ -9,6 +9,9 @@ export class EditProfileValidationDto {
 
   @IsNotEmpty()
   displayName: string;
+
+  @ApiProperty({ type: 'string', format: 'binary', required: false })
+  avatar: Express.Multer.File;
 }
 
 export class EditProfileDto extends PartialType(EditProfileValidationDto) {}
