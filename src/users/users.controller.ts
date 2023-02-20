@@ -35,6 +35,7 @@ import { TokenPayload } from '../auth/tokenPayload.decorator';
 import { JwtTokenPayload } from '../auth/types';
 import { UserTokensService } from './userTokens.service';
 import { UserToken } from './userToken.entity';
+import { EditPasswordDto } from './dto/editPassword.dto';
 
 @ApiTags('users')
 @ApiBearerAuth('access-token')
@@ -53,7 +54,7 @@ export class UsersController {
     description: 'Returns current user information based on access token',
   })
   @ApiResponse({
-    status: 200,
+    status: HttpStatus.OK,
     type: User,
     description: 'Returns logged in `User`',
   })
@@ -70,12 +71,36 @@ export class UsersController {
     summary: 'Edit current user profile',
   })
   @ApiResponse({
-    status: 200,
+    status: HttpStatus.OK,
     type: User,
     description: 'Returns updated `User`',
   })
   editProfile(@CurrentUser() user: User, @UploadedFile() avatar: Express.Multer.File, @Body() body: EditProfileDto) {
     return this.usersService.editProfile(user, body, avatar);
+  }
+
+  @Patch('password')
+  @UseGuards(UserGuard)
+  @ApiOperation({
+    summary: 'Edit current user password. Need original password for this operation.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: User,
+    description: 'Returns current `User`',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Validation errors, including wrong current password validation',
+  })
+  async editPassword(@CurrentUser() user: User, @Body() body: EditPasswordDto) {
+    const isOldPasswordValid = await user.validatePassword(body.oldPassword);
+
+    if (!isOldPasswordValid) {
+      throw new HttpException({ oldPassword: ['Not valid'] }, HttpStatus.BAD_REQUEST);
+    }
+
+    return this.usersService.updatePassword(user, body.newPassword);
   }
 
   @Get('tokens')
@@ -84,42 +109,45 @@ export class UsersController {
     summary: 'Get all tokens information of currently logged in user',
   })
   @ApiResponse({
-    status: 200,
+    status: HttpStatus.OK,
     type: UserToken,
     isArray: true,
     description: 'Returns array of all `UserToken`s',
   })
-  tokens(@TokenPayload() tokenPayload: JwtTokenPayload) {
-    const userId = tokenPayload.userId;
+  tokens(@TokenPayload() { userId }: JwtTokenPayload) {
     return this.userTokensService.findByUserId(userId);
   }
 
   @Delete('/tokens/:id')
-  @HttpCode(204)
+  @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Delete one UserToken by id',
   })
   @ApiResponse({
-    status: 204,
+    status: HttpStatus.NO_CONTENT,
     description: 'Token was successfully deleted',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'This token does not belong to current user or does not exist',
   })
   async removeToken(@Param('id', ParseIntPipe) id: number, @TokenPayload() { userId }: JwtTokenPayload) {
     const result = await this.userTokensService.removeByUserIdAndId(id, userId);
 
     if (!result.affected) {
-      throw new HttpException('You cannot do this', HttpStatus.UNAUTHORIZED);
+      throw new HttpException('You cannot do this', HttpStatus.FORBIDDEN);
     }
   }
 
   @Delete('/allTokens')
-  @HttpCode(401)
+  @HttpCode(HttpStatus.UNAUTHORIZED)
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Delete all UserTokens of currently logged in user, including current',
   })
   @ApiResponse({
-    status: 401,
+    status: HttpStatus.UNAUTHORIZED,
     description: 'All tokens were deleted, forcing logout',
   })
   async removeAll(@TokenPayload() { userId }: JwtTokenPayload) {

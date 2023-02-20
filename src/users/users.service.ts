@@ -50,6 +50,11 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
+  async updatePassword(user: User, newPassword: string) {
+    user.password = newPassword;
+    return this.usersRepository.save(user);
+  }
+
   private async removeAvatar(filename: string) {
     try {
       const basePath = this.configService.get('MEDIA_DEST');
