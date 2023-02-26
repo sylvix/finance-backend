@@ -26,7 +26,7 @@ export class UserTokensService {
   }
 
   async findByUserId(userId: number) {
-    return this.userTokenRepository.findBy({ user: { id: userId } });
+    return this.userTokenRepository.find({ where: { user: { id: userId } }, order: { expiresAt: 'DESC' } });
   }
 
   async removeByUserIdAndId(id: number, userId: number) {
