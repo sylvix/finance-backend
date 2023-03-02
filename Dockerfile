@@ -2,7 +2,7 @@ FROM node:18.14.2-alpine AS build
 
 USER node
 
-ENV NODE_ENV=production
+# Disable husky
 ENV HUSKY=0
 
 WORKDIR /app
@@ -10,11 +10,14 @@ WORKDIR /app
 # Copy package.json and package-lock.json
 COPY --chown=node:node package*.json .
 
-# Install dev dependencies (since build won't work without them
+# Install all dependencies (since build won't work without them)
 RUN npm ci
 
 # Copy the app
 COPY --chown=node:node . .
+
+# Set production environment
+ENV NODE_ENV=production
 
 # Build for production
 RUN npm run build
