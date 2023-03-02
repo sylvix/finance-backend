@@ -26,13 +26,13 @@ RUN npm run build
 RUN npm pkg delete scripts.prepare
 
 # Leave only production dependencies to create smaller image
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
 
 FROM node:18.14.2-alpine
 
 # Copy the bundled code from the build stage to the production image
-COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
-COPY --chown=node:node --from=build /usr/src/app/dist ./dist
+COPY --chown=node:node --from=build /app/node_modules ./node_modules
+COPY --chown=node:node --from=build /app/dist ./dist
 
 # Start the server using the production build
 CMD [ "node", "dist/main.js" ]
