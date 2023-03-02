@@ -1,0 +1,11 @@
+tmp
+dist
+node_modules
+pgdata
+public
+test
+.dockerignore
+Dockerfile
+.prettierignore
+docker-compose.dev.yml
+README.md

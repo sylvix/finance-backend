@@ -13,6 +13,8 @@ interface CustomValidationError {
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
+  const config = app.get(ConfigService);
+
   app.useGlobalPipes(
     new ValidationPipe({
       exceptionFactory: (validationErrors: ValidationError[] = []) => {
@@ -47,7 +49,6 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, options);
     SwaggerModule.setup('api/swagger', app, document);
 
-    const config = app.get(ConfigService);
     app.useStaticAssets(config.get<string>('MEDIA_DEST') || 'public');
 
     app.enableCors({
@@ -56,7 +57,9 @@ async function bootstrap() {
     });
   }
 
-  await app.listen(8000);
+  const port = parseInt(config.get('PORT', '8000'));
+
+  await app.listen(port);
 }
 
 void bootstrap();
