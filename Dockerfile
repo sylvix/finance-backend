@@ -22,6 +22,9 @@ ENV NODE_ENV=production
 # Build for production
 RUN npm run build
 
+# Disable prepare script so husky is not run while installing deps for production
+RUN npm pkg delete scripts.prepare
+
 # Leave only production dependencies to create smaller image
 RUN npm ci --only=production && npm cache clean --force
 
