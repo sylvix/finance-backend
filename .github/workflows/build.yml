@@ -35,3 +35,10 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Trigger deploy
+        run: |
+          curl -X POST https://api.github.com/repos/${{ secrets.DOCKER_REPO }}/dispatches \
+          -H 'Accept: application/vnd.github.everest-preview+json' \
+          -u ${{ secrets.ACTIONS_PAT }} \
+          --data '{"event_type": "deploy", "client_payload": { "type": "backend" }}'
