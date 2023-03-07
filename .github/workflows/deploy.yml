@@ -1,4 +1,4 @@
-name: Build and push image
+name: Manual deploy
 
 on:
   workflow_dispatch:
