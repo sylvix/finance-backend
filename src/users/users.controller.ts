@@ -10,6 +10,7 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  SerializeOptions,
   UploadedFile,
   UseFilters,
   UseGuards,
@@ -32,10 +33,11 @@ import { EditProfileDto } from './dto/editProfile.dto';
 import { FileRemovalFilter } from './fileRemoval.filter';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TokenPayload } from '../auth/tokenPayload.decorator';
-import { JwtTokenPayload } from '../auth/types';
+import { AccessTokenPayload } from '../auth/types';
 import { UserTokensService } from './userTokens.service';
 import { UserToken } from './userToken.entity';
 import { EditPasswordDto } from './dto/editPassword.dto';
+import { UserGroupGuard } from '../auth/userGroup.guard';
 
 @ApiTags('users')
 @ApiBearerAuth('access-token')
@@ -48,7 +50,10 @@ export class UsersController {
   constructor(private readonly usersService: UsersService, private readonly userTokensService: UserTokensService) {}
 
   @Get('me')
-  @UseGuards(UserGuard)
+  @SerializeOptions({
+    groups: ['user'],
+  })
+  @UseGuards(UserGroupGuard)
   @ApiOperation({
     summary: 'Get current user information',
     description: 'Returns current user information based on access token',
@@ -58,14 +63,17 @@ export class UsersController {
     type: User,
     description: 'Returns logged in `User`',
   })
-  async me(@CurrentUser() user: User) {
-    return user;
+  async me(@TokenPayload() payload: AccessTokenPayload) {
+    return this.usersService.findById(payload.userId);
   }
 
   @Patch('profile')
   @UseGuards(UserGuard)
   @UseInterceptors(FileInterceptor('avatar'))
   @UseFilters(FileRemovalFilter)
+  @SerializeOptions({
+    groups: ['user'],
+  })
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
     summary: 'Edit current user profile',
@@ -114,7 +122,7 @@ export class UsersController {
     isArray: true,
     description: 'Returns array of all `UserToken`s',
   })
-  tokens(@TokenPayload() { userId }: JwtTokenPayload) {
+  tokens(@TokenPayload() { userId }: AccessTokenPayload) {
     return this.userTokensService.findByUserId(userId);
   }
 
@@ -132,7 +140,7 @@ export class UsersController {
     status: HttpStatus.FORBIDDEN,
     description: 'This token does not belong to current user or does not exist',
   })
-  async removeToken(@Param('id', ParseIntPipe) id: number, @TokenPayload() { userId }: JwtTokenPayload) {
+  async removeToken(@Param('id', ParseIntPipe) id: number, @TokenPayload() { userId }: AccessTokenPayload) {
     const result = await this.userTokensService.removeByUserIdAndId(id, userId);
 
     if (!result.affected) {
@@ -150,7 +158,7 @@ export class UsersController {
     status: HttpStatus.UNAUTHORIZED,
     description: 'All tokens were deleted, forcing logout',
   })
-  async removeAll(@TokenPayload() { userId }: JwtTokenPayload) {
+  async removeAll(@TokenPayload() { userId }: AccessTokenPayload) {
     return this.userTokensService.removeAllByUserId(userId);
   }
 }

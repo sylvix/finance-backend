@@ -3,15 +3,18 @@ import { promises as fs } from 'fs';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { User } from './user.entity';
 import { EditProfileDto } from './dto/editProfile.dto';
+import { GroupsService } from '../groups/groups.service';
 
 @Injectable()
 export class UsersService {
   constructor(
+    private readonly dataSource: DataSource,
     @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    private readonly usersRepository: Repository<User>,
+    private readonly groupsService: GroupsService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -29,6 +32,8 @@ export class UsersService {
       password,
       displayName,
     });
+
+    await this.groupsService.createDefaultGroup(user);
 
     return this.usersRepository.save(user);
   }
@@ -60,5 +65,9 @@ export class UsersService {
       const basePath = this.configService.get('MEDIA_DEST');
       await fs.unlink(join(basePath, filename));
     } catch {}
+  }
+
+  async updateDefaultGroup(userId: number, groupId: number) {
+    return this.usersRepository.update({ id: userId }, { defaultGroupId: groupId });
   }
 }

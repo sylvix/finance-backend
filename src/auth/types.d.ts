@@ -1,5 +1,6 @@
-export interface JwtTokenPayload {
+export interface AccessTokenPayload {
   userId: number;
+  groupId: number;
 }
 
 export interface JwtRefreshTokenPayload {

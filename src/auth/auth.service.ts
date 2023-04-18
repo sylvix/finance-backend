@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { DeviceDetectorService } from './deviceDetector.service';
 import { User } from '../users/user.entity';
-import { JwtRefreshTokenPayload, JwtTokenPayload } from './types';
+import { JwtRefreshTokenPayload, AccessTokenPayload } from './types';
 import { UserTokensService } from '../users/userTokens.service';
 import { RegisterDto } from './dto/register.dto';
 import { UserResponseDto } from './dto/userResponse.dto';
@@ -27,7 +27,7 @@ export class AuthService {
 
   async createUserResponse(user: User, userAgent: string) {
     return new UserResponseDto(user, {
-      access: await this.getAccessToken(user.id),
+      access: await this.getAccessToken(user),
       refresh: await this.getRefreshToken(user.id, userAgent),
     });
   }
@@ -43,14 +43,24 @@ export class AuthService {
     return null;
   }
 
-  async getAccessToken(userId: number) {
-    const payload: JwtTokenPayload = { userId };
+  async getAccessToken(user: User) {
+    const payload: AccessTokenPayload = { userId: user.id, groupId: user.defaultGroupId };
     const expirationTime = this.configService.get('ACCESS_TOKEN_EXPIRATION_TIME');
 
     return await this.jwtService.signAsync(payload, {
       secret: this.configService.get('ACCESS_TOKEN_SECRET'),
       expiresIn: `${expirationTime}s`,
     });
+  }
+
+  async createAccessToken(userId: number) {
+    const user = await this.usersService.findById(userId);
+
+    if (!user) {
+      throw new Error('No user found with this id');
+    }
+
+    return this.getAccessToken(user);
   }
 
   async getRefreshToken(userId: number, userAgent: string) {

@@ -10,6 +10,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RegisterSecretConstraint } from './validators/registerSecret.validator';
 import { MulterModule } from '@nestjs/platform-express';
 import { multerOptionsFactory } from './multerOptions.factory';
+import { GroupsModule } from '../groups/groups.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { multerOptionsFactory } from './multerOptions.factory';
       useFactory: multerOptionsFactory,
       inject: [ConfigService],
     }),
+    GroupsModule,
   ],
   providers: [UsersService, UserTokensService, UniqueUserEmailConstraint, RegisterSecretConstraint],
   exports: [UsersService, UserTokensService],

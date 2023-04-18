@@ -37,7 +37,7 @@ $ npm run cli seed
 
 ```shell
 # development mode
-$ npm run start:dev
+$ npm run dev
 ```
 ```shell
 # production mode

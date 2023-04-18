@@ -1,7 +1,7 @@
 import { ExecutionContext, Injectable } from '@nestjs/common';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { UsersService } from '../users/users.service';
-import { JwtTokenPayload } from './types';
+import { AccessTokenPayload } from './types';
 
 @Injectable()
 export class UserGuard extends JwtAuthGuard {
@@ -17,7 +17,7 @@ export class UserGuard extends JwtAuthGuard {
     }
 
     const request = context.switchToHttp().getRequest();
-    const payload = request.user as JwtTokenPayload;
+    const payload = request.user as AccessTokenPayload;
     const user = await this.usersService.findById(payload.userId);
 
     if (!user) {

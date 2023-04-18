@@ -1,8 +1,10 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { Exclude } from 'class-transformer';
+import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Exclude, Expose } from 'class-transformer';
 import { UserToken } from './userToken.entity';
 import { ApiHideProperty } from '@nestjs/swagger';
+import { UserToGroup } from '../groups/userToGroup.entity';
+import { Group } from '../groups/group.entity';
 
 @Entity()
 export class User {
@@ -26,10 +28,23 @@ export class User {
   @CreateDateColumn()
   createdAt: Date;
 
+  @Column()
+  @Expose({ groups: ['user'] })
+  defaultGroupId: number;
+
+  @ApiHideProperty()
+  @ManyToOne(() => Group)
+  defaultGroup: Group;
+
   @Exclude()
   @ApiHideProperty()
   @OneToMany(() => UserToken, (userToken) => userToken.user)
   tokens: UserToken[];
+
+  @Exclude()
+  @ApiHideProperty()
+  @OneToMany(() => UserToGroup, (userToGroup) => userToGroup.user, { cascade: true })
+  userToGroups: UserToGroup[];
 
   async validatePassword(password: string) {
     return bcrypt.compare(password, this.password);

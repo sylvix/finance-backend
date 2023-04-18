@@ -5,6 +5,7 @@ import {
   Headers,
   HttpCode,
   Post,
+  SerializeOptions,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -39,6 +40,9 @@ export class AuthController {
 
   @Post('register')
   @UseInterceptors(ClassSerializerInterceptor)
+  @SerializeOptions({
+    groups: ['user'],
+  })
   @ApiOperation({
     summary: 'Register new user',
     description: 'Returns information of newly registered user and signs this user in',
@@ -57,6 +61,9 @@ export class AuthController {
   @Post('login')
   @UseGuards(LocalAuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
+  @SerializeOptions({
+    groups: ['user'],
+  })
   @HttpCode(200)
   @ApiOperation({
     summary: 'User login',
@@ -90,7 +97,7 @@ export class AuthController {
       'Non-existing, incorrect or expired refresh token.\nAlso, if the device differs it will remove the token from the database.',
   })
   async refresh(@RefreshTokenPayload() payload: JwtRefreshTokenPayload) {
-    const accessToken = await this.authService.getAccessToken(payload.userId);
+    const accessToken = await this.authService.createAccessToken(payload.userId);
     return new AccessTokenDto(accessToken);
   }
 

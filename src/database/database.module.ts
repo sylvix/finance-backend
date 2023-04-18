@@ -2,10 +2,12 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DataSource, DataSourceOptions } from 'typeorm';
-import { User } from '../users/user.entity';
-import { UserToken } from '../users/userToken.entity';
-import { UserSubscriber } from '../users/user.subscriber';
 import migrations from './migrations';
+import { UserSubscriber } from '../users/user.subscriber';
+import { User } from '../users/user.entity';
+import { UserToGroup } from '../groups/userToGroup.entity';
+import { UserToken } from '../users/userToken.entity';
+import { Group } from '../groups/group.entity';
 
 @Module({
   imports: [
@@ -15,16 +17,17 @@ import migrations from './migrations';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService): DataSourceOptions => ({
+      useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         host: configService.get('DB_HOST'),
         port: parseInt(configService.get('DB_PORT') as string),
         username: configService.get('DB_USER'),
         password: configService.get('DB_PASS'),
         database: configService.get('DB_NAME'),
-        entities: [User, UserToken],
+        entities: [User, UserToGroup, UserToken, Group],
         subscribers: [UserSubscriber],
         synchronize: false,
+        logging: Boolean(configService.get('DB_LOGGER')),
         migrations,
       }),
       dataSourceFactory: async (options) => {
