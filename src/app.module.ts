@@ -5,6 +5,9 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { DatabaseModule } from './database/database.module';
 import { GroupsModule } from './groups/groups.module';
+import { CurrenciesModule } from './currencies/currencies.module';
+import { AccountsModule } from './accounts/accounts.module';
+import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
   imports: [
@@ -15,6 +18,9 @@ import { GroupsModule } from './groups/groups.module';
     AuthModule,
     UsersModule,
     GroupsModule,
+    CurrenciesModule,
+    AccountsModule,
+    TransactionsModule,
   ],
   providers: [AppService],
 })

@@ -8,6 +8,7 @@ import { User } from '../users/user.entity';
 import { UserToGroup } from '../groups/userToGroup.entity';
 import { UserToken } from '../users/userToken.entity';
 import { Group } from '../groups/group.entity';
+import { Account } from '../accounts/account.entity';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { Group } from '../groups/group.entity';
         username: configService.get('DB_USER'),
         password: configService.get('DB_PASS'),
         database: configService.get('DB_NAME'),
-        entities: [User, UserToGroup, UserToken, Group],
+        entities: [User, UserToGroup, UserToken, Group, Account],
         subscribers: [UserSubscriber],
         synchronize: false,
         logging: Boolean(configService.get('DB_LOGGER')),

@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
-import { DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { EditProfileDto } from './dto/editProfile.dto';
 import { GroupsService } from '../groups/groups.service';
@@ -11,7 +11,6 @@ import { GroupsService } from '../groups/groups.service';
 @Injectable()
 export class UsersService {
   constructor(
-    private readonly dataSource: DataSource,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
     private readonly groupsService: GroupsService,

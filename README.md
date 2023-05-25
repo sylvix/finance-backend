@@ -90,3 +90,15 @@ $ npm run migration:revert
 Since Postgres doesn't save the timezone with the dates, UTC timezone is assumed.
 That's why for correct dates backend should also use UTC timezone.
 And that's the reason for the `UTC=TZ` env variable in `.env` file.
+
+## CLI Commands
+
+### Download currencies
+```shell
+$ npm run cli downloadCurrencies
+```
+
+### Load fixtures
+```shell
+$ npm run cli seed
+```

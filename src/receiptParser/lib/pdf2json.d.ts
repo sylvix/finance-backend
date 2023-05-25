@@ -28,10 +28,10 @@ declare module 'pdf2json' {
     Height: number;
     HLines: LineData[];
     VLines: LineData[];
-    Fills: any[];
+    Fills: unknown[];
     Texts: TextData[];
-    Fields: any[];
-    Boxsets: any[];
+    Fields: unknown[];
+    Boxsets: unknown[];
   }
 
   declare interface MetaData {
@@ -42,7 +42,7 @@ declare module 'pdf2json' {
     Producer: string;
     CreationDate: string;
     ModDate: string;
-    Metadata: Record<string, any>;
+    Metadata: Record<string, unknown>;
   }
 
   declare interface PdfData {
