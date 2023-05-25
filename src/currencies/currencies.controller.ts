@@ -25,7 +25,7 @@ export class CurrenciesController {
     isArray: true,
     description: 'Array of currencies',
   })
-  all() {
+  getAll() {
     return this.currenciesService.getAll();
   }
 }

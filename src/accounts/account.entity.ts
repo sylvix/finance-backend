@@ -1,5 +1,6 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Group } from '../groups/group.entity';
+import { ApiHideProperty } from '@nestjs/swagger';
 
 export enum AccountType {
   CASH = 'cash',
@@ -15,6 +16,7 @@ export class Account {
   @Column()
   groupId: number;
 
+  @ApiHideProperty()
   @ManyToOne(() => Group, (group) => group.accounts, { onDelete: 'CASCADE' })
   group: Group;
 
