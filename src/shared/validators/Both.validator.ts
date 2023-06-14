@@ -6,7 +6,7 @@ import {
   ValidationArguments,
 } from 'class-validator';
 
-@ValidatorConstraint({ name: 'Either', async: true })
+@ValidatorConstraint({ name: 'Both', async: true })
 export class BothConstraint implements ValidatorConstraintInterface {
   async validate(value: unknown | null, args: ValidationArguments): Promise<boolean> {
     const [otherFieldName] = args.constraints;
