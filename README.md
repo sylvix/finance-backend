@@ -21,7 +21,8 @@ $ docker compose -f docker-compose.dev.yml up -d
 
 Before running the app ensure you have PostgreSQL server up and running.
 
-Copy `.env.development` file into `.env.local` and edit database settings.
+Copy `.env.development` file into `.env.local` and edit database settings. If using Docker postgres 
+from `docker-compose.dev.yml` you don't need to edit anything.
 
 Run migrations:
 ```shell
@@ -87,7 +88,7 @@ $ npm run migration:revert
 ```
 
 ## Timezone
-Since Postgres doesn't save the timezone with the dates, UTC timezone is assumed.
+For this project UTC timezone is assumed.
 That's why for correct dates backend should also use UTC timezone.
 And that's the reason for the `UTC=TZ` env variable in `.env` file.
 

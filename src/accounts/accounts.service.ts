@@ -23,4 +23,9 @@ export class AccountsService {
 
     return this.accountsRepository.save(account);
   }
+
+  async accountIsInGroup(groupId: number, id: number) {
+    const count = await this.accountsRepository.count({ where: { groupId, id } });
+    return count === 1;
+  }
 }

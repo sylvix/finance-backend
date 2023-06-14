@@ -28,7 +28,6 @@ export class GroupsService {
 
   async userIsInGroup(userId: number, groupId: number) {
     const count = await this.userToGroupsRepository.count({ where: { groupId, userId } });
-    console.log(count);
     return count === 1;
   }
 

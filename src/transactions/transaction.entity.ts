@@ -21,24 +21,24 @@ export class Transaction {
   @ManyToOne(() => Group, (group) => group.transactions, { onDelete: 'CASCADE' })
   group: Group;
 
-  @Column()
-  incomingAccountId: number;
+  @Column({ nullable: true })
+  incomingAccountId: number | null;
 
   @ManyToOne(() => Account, { nullable: true, onDelete: 'CASCADE' })
   incomingAccount: Account;
 
-  @Column()
-  outgoingAccountId: number;
+  @Column({ nullable: true })
+  outgoingAccountId: number | null;
 
   @ManyToOne(() => Account, { nullable: true, onDelete: 'CASCADE' })
   outgoingAccount: Account;
 
   @Column({ type: 'bigint', nullable: true })
-  incomingAmount: number;
+  incomingAmount: number | null;
 
   @Column({ type: 'bigint', nullable: true })
-  outgoingAmount: number;
+  outgoingAmount: number | null;
 
   @Column()
-  description: string;
+  description?: string;
 }
