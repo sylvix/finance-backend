@@ -2,8 +2,13 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
   Post,
   UseGuards,
   UseInterceptors,
@@ -15,6 +20,8 @@ import { Account } from './account.entity';
 import { TokenPayload } from '../auth/tokenPayload.decorator';
 import { AccessTokenPayload } from '../auth/types';
 import { MutateAccountDto } from './dto/MutateAccount.dto';
+import { Transaction } from '../transactions/transaction.entity';
+import { AccountInGroupGuard } from './guards/AccountInGroup.guard';
 
 @ApiTags('accounts')
 @Controller('accounts')
@@ -37,8 +44,8 @@ export class AccountsController {
     isArray: true,
     description: 'Array of `Account`s',
   })
-  async getAll(@TokenPayload() { groupId }: AccessTokenPayload) {
-    return this.accountsService.getAllForGroup(groupId);
+  async findAll(@TokenPayload() { groupId }: AccessTokenPayload) {
+    return this.accountsService.findAllForGroup(groupId);
   }
 
   @Post()
@@ -52,5 +59,50 @@ export class AccountsController {
   })
   async create(@TokenPayload() { groupId }: AccessTokenPayload, @Body() body: MutateAccountDto) {
     return this.accountsService.create(groupId, body);
+  }
+
+  @Patch(':id')
+  @UseGuards(AccountInGroupGuard)
+  @ApiOperation({
+    summary: 'Edit selected account',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: Transaction,
+    description: 'Account was edited successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'This account does not exist',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: "Trying to edit account not in User's defaultGroup",
+  })
+  async edit(@Param('id', ParseIntPipe) id: number, @Body() body: MutateAccountDto) {
+    return this.accountsService.edit(id, body);
+  }
+
+  @Delete(':id')
+  @UseGuards(AccountInGroupGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Delete selected account',
+  })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    type: Transaction,
+    description: 'Account was deleted successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'This account does not exist',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: "Trying to delete account not in User's defaultGroup",
+  })
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    return this.accountsService.remove(id);
   }
 }

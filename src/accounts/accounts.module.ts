@@ -4,10 +4,11 @@ import { AccountsController } from './accounts.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Account } from './account.entity';
 import { AuthModule } from '../auth/auth.module';
+import { AccountInGroupGuard } from './guards/AccountInGroup.guard';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Account]), AuthModule],
-  providers: [AccountsService],
+  providers: [AccountsService, AccountInGroupGuard],
   exports: [AccountsService],
   controllers: [AccountsController],
 })

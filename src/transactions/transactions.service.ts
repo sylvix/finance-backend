@@ -6,7 +6,6 @@ import { PageOptionsDto } from '../shared/dto/PageOptions.dto';
 import { PageMetaDto } from '../shared/dto/PageMeta.dto';
 import { PageDto } from '../shared/dto/Page.dto';
 import { MutateTransactionDto } from './dto/MutateTransaction.dto';
-import { GroupsService } from '../groups/groups.service';
 import { AccountsService } from '../accounts/accounts.service';
 
 @Injectable()
@@ -14,7 +13,6 @@ export class TransactionsService {
   constructor(
     @InjectRepository(Transaction)
     private readonly transactionRepository: Repository<Transaction>,
-    private readonly groupsService: GroupsService,
     private readonly accountsService: AccountsService,
   ) {}
 
@@ -50,10 +48,8 @@ export class TransactionsService {
     return this.transactionRepository.save(transaction);
   }
 
-  async edit(userId: number, id: number, mutateTransactionDto: MutateTransactionDto) {
+  async edit(id: number, mutateTransactionDto: MutateTransactionDto) {
     const transaction = await this.findById(id);
-
-    await this.checkUserInGroup(userId, transaction.groupId);
 
     if (mutateTransactionDto.incomingAccountId) {
       await this.checkAccount(mutateTransactionDto.incomingAccountId, transaction.groupId);
@@ -73,22 +69,19 @@ export class TransactionsService {
     return this.transactionRepository.save(transaction);
   }
 
-  async remove(userId: number, id: number) {
+  async remove(id: number) {
     const transaction = await this.findById(id);
-    await this.checkUserInGroup(userId, transaction.groupId);
     await this.transactionRepository.remove(transaction);
   }
 
-  private async checkUserInGroup(userId: number, groupId: number) {
-    const userIsInGroup = await this.groupsService.userIsInGroup(userId, groupId);
+  async isTransactionInGroup(id: number, groupId: number) {
+    const count = await this.transactionRepository.count({ where: { id, groupId } });
 
-    if (!userIsInGroup) {
-      throw new ForbiddenException('You cannot edit this transaction');
-    }
+    return count === 1;
   }
 
   private async checkAccount(accountId: number, groupId: number) {
-    const accountIsInGroup = await this.accountsService.accountIsInGroup(accountId, groupId);
+    const accountIsInGroup = await this.accountsService.isAccountInGroup(accountId, groupId);
 
     if (!accountIsInGroup) {
       throw new ForbiddenException('You cannot assign accounts not in your group');

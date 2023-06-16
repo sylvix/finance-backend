@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Account } from './account.entity';
 import { Repository } from 'typeorm';
@@ -11,7 +11,17 @@ export class AccountsService {
     private readonly accountsRepository: Repository<Account>,
   ) {}
 
-  async getAllForGroup(groupId: number) {
+  async findById(id: number) {
+    const account = await this.accountsRepository.findOneBy({ id });
+
+    if (!account) {
+      throw new NotFoundException('This account does not exist');
+    }
+
+    return account;
+  }
+
+  async findAllForGroup(groupId: number) {
     return this.accountsRepository.find({ where: { groupId }, order: { createdAt: 'ASC' } });
   }
 
@@ -24,8 +34,24 @@ export class AccountsService {
     return this.accountsRepository.save(account);
   }
 
-  async accountIsInGroup(groupId: number, id: number) {
-    const count = await this.accountsRepository.count({ where: { groupId, id } });
+  async edit(id: number, mutateDto: MutateAccountDto) {
+    const account = await this.findById(id);
+
+    account.name = mutateDto.name;
+    account.type = mutateDto.type;
+    account.currency = mutateDto.currency;
+
+    return this.accountsRepository.save(account);
+  }
+
+  async remove(id: number) {
+    const account = await this.findById(id);
+    await this.accountsRepository.remove(account);
+  }
+
+  async isAccountInGroup(id: number, groupId: number) {
+    const count = await this.accountsRepository.count({ where: { id, groupId } });
+
     return count === 1;
   }
 }

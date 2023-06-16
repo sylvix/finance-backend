@@ -23,6 +23,7 @@ import { TokenPayload } from '../auth/tokenPayload.decorator';
 import { AccessTokenPayload } from '../auth/types';
 import { PageOptionsDto } from '../shared/dto/PageOptions.dto';
 import { MutateTransactionDto } from './dto/MutateTransaction.dto';
+import { TransactionInGroupGuard } from './guards/TransactionInGroup.guard';
 
 @ApiTags('transactions')
 @ApiBearerAuth('access-token')
@@ -54,6 +55,7 @@ export class TransactionsController {
   }
 
   @Patch(':id')
+  @UseGuards(TransactionInGroupGuard)
   @ApiOperation({
     summary: 'Edit a transaction',
   })
@@ -70,15 +72,12 @@ export class TransactionsController {
     status: HttpStatus.FORBIDDEN,
     description: "Trying to edit transaction not in User's defaultGroup or assign accounts from other groups",
   })
-  async edit(
-    @TokenPayload() { userId }: AccessTokenPayload,
-    @Param('id', ParseIntPipe) id: number,
-    @Body() mutateTransactionDto: MutateTransactionDto,
-  ) {
-    return this.transactionsService.edit(userId, id, mutateTransactionDto);
+  async edit(@Param('id', ParseIntPipe) id: number, @Body() mutateTransactionDto: MutateTransactionDto) {
+    return this.transactionsService.edit(id, mutateTransactionDto);
   }
 
   @Delete(':id')
+  @UseGuards(TransactionInGroupGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Delete a transaction',
@@ -95,7 +94,7 @@ export class TransactionsController {
     status: HttpStatus.FORBIDDEN,
     description: "Trying to delete transaction not in current User's defaultGroup",
   })
-  async remove(@TokenPayload() { userId }: AccessTokenPayload, @Param('id', ParseIntPipe) id: number) {
-    return this.transactionsService.remove(userId, id);
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    return this.transactionsService.remove(id);
   }
 }
