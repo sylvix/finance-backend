@@ -26,6 +26,6 @@ export class CurrenciesController {
     description: 'Array of currencies',
   })
   getAll() {
-    return this.currenciesService.getAll();
+    return this.currenciesService.findAll();
   }
 }

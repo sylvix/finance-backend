@@ -11,5 +11,5 @@ export class MutateAccountDto {
   currency: string;
 
   @IsEnum(AccountType)
-  type: string;
+  type: AccountType;
 }

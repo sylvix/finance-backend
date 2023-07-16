@@ -8,6 +8,16 @@ import { IsoCurrencies, IsoCurrenciesXMLResponse, OERCurrenciesResponse } from '
 import { CurrenciesService } from './currencies.service';
 import { XMLParser } from 'fast-xml-parser';
 
+interface ManualFixes {
+  [key: string]: Partial<{ name: string; decimals: number }>;
+}
+
+const manualFixes: ManualFixes = {
+  KGS: {
+    name: 'Kyrgyz Som',
+  },
+};
+
 @Command({ name: 'downloadCurrencies', description: 'Download, parse and update currencies file' })
 export class DownloadCurrenciesCommand extends CommandRunner {
   constructor(private readonly httpService: HttpService, private readonly currenciesService: CurrenciesService) {
@@ -26,9 +36,10 @@ export class DownloadCurrenciesCommand extends CommandRunner {
         result[code] = {
           name: currencies[code],
           decimals: isoCurrencies[code].decimals,
+          ...manualFixes[code],
         };
       } else {
-        console.log('Currency', code, 'not found in ISO currencies! Skipping it...');
+        console.log(`Currency "${code}" not found in ISO currencies! Skipping it...`);
       }
     });
 
@@ -68,6 +79,6 @@ export class DownloadCurrenciesCommand extends CommandRunner {
       await fs.mkdir(dirname, { recursive: true });
     }
 
-    await fs.writeFile(filePath, JSON.stringify(data));
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2));
   }
 }

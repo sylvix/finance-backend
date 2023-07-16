@@ -48,6 +48,20 @@ export class AccountsController {
     return this.accountsService.findAllForGroup(groupId);
   }
 
+  @Get('withTotals')
+  @ApiOperation({
+    summary: 'Get all accounts of current group with totals',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: Account,
+    isArray: true,
+    description: 'Array of `Account`s',
+  })
+  async findAllWithTotals(@TokenPayload() { groupId }: AccessTokenPayload) {
+    return this.accountsService.findAllWithTotal(groupId);
+  }
+
   @Post()
   @ApiOperation({
     summary: 'Create new account for current group',

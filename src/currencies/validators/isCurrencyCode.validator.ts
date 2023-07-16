@@ -7,13 +7,13 @@ import {
 import { Injectable } from '@nestjs/common';
 import { CurrenciesService } from '../currencies.service';
 
-@ValidatorConstraint({ name: 'RegisterSecret' })
+@ValidatorConstraint({ name: 'IsCurrencyCode' })
 @Injectable()
-export class CurrencyConstraint implements ValidatorConstraintInterface {
+export class IsCurrencyCodeConstraint implements ValidatorConstraintInterface {
   constructor(private readonly currenciesService: CurrenciesService) {}
 
   async validate(code: string) {
-    const currencies = await this.currenciesService.getAll();
+    const currencies = await this.currenciesService.findAll();
     const currencyDto = currencies.find((currency) => currency.code === code);
 
     return Boolean(currencyDto);
@@ -31,7 +31,7 @@ export function IsCurrencyCode(validationOptions?: ValidationOptions) {
       propertyName: propertyName,
       options: validationOptions,
       constraints: [],
-      validator: CurrencyConstraint,
+      validator: IsCurrencyCodeConstraint,
     });
   };
 }
