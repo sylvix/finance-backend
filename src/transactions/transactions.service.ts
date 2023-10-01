@@ -30,6 +30,7 @@ export class TransactionsService {
     const [entities, itemCount] = await this.transactionRepository.findAndCount({
       where: { groupId },
       order: { conductedAt: 'DESC' },
+      relations: ['incomingAccount', 'outgoingAccount'],
       take: pageOptionsDto.take,
       skip: pageOptionsDto.skip,
     });
