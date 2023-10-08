@@ -7,6 +7,7 @@ export class AccountWithTotalQueryResultDto {
   account_currency: string;
   account_type: AccountType;
   account_createdAt: string;
+  account_lockedBalance: string | null;
   incomingAccountId: number;
   incoming: string | null;
   outgoingAccountId: number;

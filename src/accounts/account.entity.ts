@@ -40,4 +40,7 @@ export class Account {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @Column({ type: 'bigint', nullable: true, default: null })
+  lockedBalance: number | null;
 }

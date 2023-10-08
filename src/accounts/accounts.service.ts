@@ -27,7 +27,7 @@ export class AccountsService {
   }
 
   async findAllForGroup(groupId: number) {
-    return this.accountsRepository.find({ where: { groupId }, order: { createdAt: 'ASC' } });
+    return this.accountsRepository.find({ where: { groupId }, order: { name: 'ASC' } });
   }
 
   async findAllWithTotal(groupId: number) {
@@ -55,6 +55,7 @@ export class AccountsService {
         '"outgoing"."outgoingAccountId" = account.id',
       )
       .addSelect('COALESCE("incoming", 0) - COALESCE("outgoing", 0)', 'total')
+      .orderBy('name', 'ASC')
       .getRawMany<AccountWithTotalQueryResultDto>();
 
     return Promise.all(
@@ -79,6 +80,7 @@ export class AccountsService {
     account.name = mutateDto.name;
     account.type = mutateDto.type;
     account.currency = mutateDto.currency;
+    account.lockedBalance = mutateDto.lockedBalance ?? null;
 
     return this.accountsRepository.save(account);
   }
