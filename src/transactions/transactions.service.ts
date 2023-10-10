@@ -41,7 +41,7 @@ export class TransactionsService {
   }
 
   async create(groupId: number, mutateTransactionDto: MutateTransactionDto) {
-    const transaction = await this.transactionRepository.create({
+    const transaction = this.transactionRepository.create({
       groupId,
       ...mutateTransactionDto,
     });

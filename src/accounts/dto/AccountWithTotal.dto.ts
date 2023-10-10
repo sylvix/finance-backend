@@ -13,7 +13,7 @@ export class AccountWithTotalDto {
     this.total = queryResult.total || '0';
     this.incoming = queryResult.incoming || '0';
     this.outgoing = queryResult.outgoing || '0';
-    this.lockedBalance = queryResult.account_lockedBalance || '0';
+    this.lockedBalance = queryResult.account_lockedBalance;
   }
 
   id: number;
@@ -25,5 +25,5 @@ export class AccountWithTotalDto {
   incoming: string;
   outgoing: string;
   total: string;
-  lockedBalance: string;
+  lockedBalance: string | null;
 }
