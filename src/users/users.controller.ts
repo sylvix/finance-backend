@@ -47,7 +47,10 @@ import { UserGroupGuard } from '../auth/userGroup.guard';
 @Controller('users')
 @UseInterceptors(ClassSerializerInterceptor)
 export class UsersController {
-  constructor(private readonly usersService: UsersService, private readonly userTokensService: UserTokensService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly userTokensService: UserTokensService,
+  ) {}
 
   @Get('me')
   @SerializeOptions({

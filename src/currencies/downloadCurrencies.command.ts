@@ -20,7 +20,10 @@ const manualFixes: ManualFixes = {
 
 @Command({ name: 'downloadCurrencies', description: 'Download, parse and update currencies file' })
 export class DownloadCurrenciesCommand extends CommandRunner {
-  constructor(private readonly httpService: HttpService, private readonly currenciesService: CurrenciesService) {
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly currenciesService: CurrenciesService,
+  ) {
     super();
   }
 
