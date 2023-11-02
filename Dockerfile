@@ -35,5 +35,8 @@ COPY --chown=node:node --from=build /app/node_modules ./node_modules
 COPY --chown=node:node --from=build /app/dist ./dist
 COPY --chown=node:node --from=build /app/assets ./assets
 
+# Set production environment
+ENV NODE_ENV=production
+
 # Start the server using the production build
 CMD [ "node", "dist/src/main.js" ]
