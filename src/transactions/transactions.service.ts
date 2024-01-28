@@ -1,12 +1,12 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { Transaction } from './transaction.entity';
-import { PageOptionsDto } from '../shared/dto/PageOptions.dto';
 import { PageMetaDto } from '../shared/dto/PageMeta.dto';
 import { PageDto } from '../shared/dto/Page.dto';
 import { MutateTransactionDto } from './dto/MutateTransaction.dto';
 import { AccountsService } from '../accounts/accounts.service';
+import { TransactionsFilterOptionsDto } from './dto/TransactionsFilterOptions.dto';
 
 @Injectable()
 export class TransactionsService {
@@ -26,16 +26,37 @@ export class TransactionsService {
     return transaction;
   }
 
-  async getAll(groupId: number, pageOptionsDto: PageOptionsDto) {
-    const [entities, itemCount] = await this.transactionRepository.findAndCount({
-      where: { groupId },
-      order: { conductedAt: 'DESC' },
-      relations: ['incomingAccount', 'outgoingAccount'],
-      take: pageOptionsDto.take,
-      skip: pageOptionsDto.skip,
-    });
+  async getAll(groupId: number, optionsDto: TransactionsFilterOptionsDto) {
+    const qb = this.transactionRepository
+      .createQueryBuilder('transaction')
+      .where('transaction.groupId = :groupId', { groupId })
+      .orderBy('transaction.conductedAt', 'DESC')
+      .leftJoinAndSelect('transaction.incomingAccount', 'incomingAccount')
+      .leftJoinAndSelect('transaction.outgoingAccount', 'outgoingAccount')
+      .limit(optionsDto.take)
+      .offset(optionsDto.skip);
 
-    const pageMetaDto = new PageMetaDto({ pageOptionsDto, itemCount });
+    if (optionsDto.account) {
+      qb.andWhere(
+        new Brackets((qb) =>
+          qb
+            .where('transaction.incomingAccountId = :incomingAccountId', { incomingAccountId: optionsDto.account })
+            .orWhere('transaction.outgoingAccountId = :outgoingAccountId', { outgoingAccountId: optionsDto.account }),
+        ),
+      );
+    }
+
+    if (optionsDto.conductedAtStart) {
+      qb.andWhere('transaction.conductedAt >= :conductedAtStart', { conductedAtStart: optionsDto.conductedAtStart });
+    }
+
+    if (optionsDto.conductedAtEnd) {
+      qb.andWhere('transaction.conductedAt <= :conductedAtEnd', { conductedAtEnd: optionsDto.conductedAtEnd });
+    }
+
+    const [entities, itemCount] = await qb.getManyAndCount();
+
+    const pageMetaDto = new PageMetaDto({ pageOptionsDto: optionsDto, itemCount });
 
     return new PageDto(entities, pageMetaDto);
   }

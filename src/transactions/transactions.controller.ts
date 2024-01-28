@@ -21,9 +21,9 @@ import { Transaction } from './transaction.entity';
 import { UserGroupGuard } from '../auth/userGroup.guard';
 import { TokenPayload } from '../auth/tokenPayload.decorator';
 import { AccessTokenPayload } from '../auth/types';
-import { PageOptionsDto } from '../shared/dto/PageOptions.dto';
 import { MutateTransactionDto } from './dto/MutateTransaction.dto';
 import { TransactionInGroupGuard } from './guards/TransactionInGroup.guard';
+import { TransactionsFilterOptionsDto } from './dto/TransactionsFilterOptions.dto';
 
 @ApiTags('transactions')
 @ApiBearerAuth('access-token')
@@ -42,8 +42,8 @@ export class TransactionsController {
     summary: 'Get paginated transactions for the current group',
   })
   @ApiPaginatedResponse(Transaction)
-  getAll(@TokenPayload() { groupId }: AccessTokenPayload, @Query() pageOptionsDto: PageOptionsDto) {
-    return this.transactionsService.getAll(groupId, pageOptionsDto);
+  getAll(@TokenPayload() { groupId }: AccessTokenPayload, @Query() optionsDto: TransactionsFilterOptionsDto) {
+    return this.transactionsService.getAll(groupId, optionsDto);
   }
 
   @Post()
