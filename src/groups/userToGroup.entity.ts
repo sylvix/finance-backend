@@ -24,7 +24,7 @@ export class UserToGroup {
   user: User;
 
   @Column({ type: 'enum', enum: UserInGroupRole, default: UserInGroupRole.MEMBER })
-  role: string;
+  role: UserInGroupRole;
 
   @CreateDateColumn()
   createdAt: Date;

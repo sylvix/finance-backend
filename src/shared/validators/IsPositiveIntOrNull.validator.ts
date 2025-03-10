@@ -8,7 +8,7 @@ import {
 
 @ValidatorConstraint({ name: 'IsPositiveIntOrNull', async: false })
 export class IsPositiveIntOrNullConstraint implements ValidatorConstraintInterface {
-  async validate(value: unknown): Promise<boolean> {
+  validate(value: unknown): boolean {
     return (typeof value === 'number' && Number.isInteger(value) && value > 0) || value === null;
   }
 

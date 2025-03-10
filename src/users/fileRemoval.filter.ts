@@ -5,6 +5,7 @@ import { Request } from 'express';
 
 @Catch(HttpException)
 export class FileRemovalFilter extends BaseExceptionFilter {
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   async catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const request = ctx.getRequest<Request>();

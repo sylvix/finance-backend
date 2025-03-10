@@ -4,7 +4,7 @@ import { Request } from 'express';
 
 export abstract class EntityInGroupGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest() as Request;
+    const request = context.switchToHttp().getRequest<Request>();
     const { id: entityId } = request.params;
     const payload = request.user as AccessTokenPayload;
 

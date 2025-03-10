@@ -15,6 +15,7 @@ export const multerOptionsFactory = (configService: ConfigService): MulterOption
     }
   },
   storage: diskStorage({
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     destination: async (req, file, cb) => {
       const dest = configService.get<string>('MEDIA_DEST');
 

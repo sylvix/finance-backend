@@ -56,14 +56,14 @@ declare module 'pdf2json' {
   declare type ListenerFunction<T> = T extends 'readable'
     ? (meta: MetaData) => void
     : T extends 'data'
-    ? (page: PageData) => void
-    : T extends 'error'
-    ? (error: Error) => void
-    : T extends 'pdfParser_dataError'
-    ? (error: Error) => void
-    : T extends 'pdfParser_dataReady'
-    ? (pdfData: PdfData) => void
-    : never;
+      ? (page: PageData) => void
+      : T extends 'error'
+        ? (error: Error) => void
+        : T extends 'pdfParser_dataError'
+          ? (error: Error) => void
+          : T extends 'pdfParser_dataReady'
+            ? (pdfData: PdfData) => void
+            : never;
 
   declare type OnFunction = <T extends EventName>(eventName: T, listener: ListenerFunction<T>) => void;
 

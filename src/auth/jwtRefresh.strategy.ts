@@ -11,14 +11,14 @@ import { sameClient } from './helpers';
 @Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwtRefresh') {
   constructor(
-    private readonly configService: ConfigService,
+    configService: ConfigService,
     private readonly userTokensService: UserTokensService,
     private readonly deviceDetectorService: DeviceDetectorService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get('REFRESH_TOKEN_SECRET'),
+      secretOrKey: configService.get<string>('REFRESH_TOKEN_SECRET'),
       passReqToCallback: true,
     });
   }

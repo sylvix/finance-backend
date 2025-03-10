@@ -54,12 +54,12 @@ export class DownloadCurrenciesCommand extends CommandRunner {
   }
 
   private async getOERCurrencies() {
-    const response = await lastValueFrom(this.httpService.get(OER_CURRENCIES_URL));
-    return response.data as OERCurrenciesResponse;
+    const response = await lastValueFrom(this.httpService.get<OERCurrenciesResponse>(OER_CURRENCIES_URL));
+    return response.data;
   }
 
   private async getISOCurrencies() {
-    const response = await lastValueFrom(this.httpService.get(ISO_CURRENCIES_URL));
+    const response = await lastValueFrom(this.httpService.get<string>(ISO_CURRENCIES_URL));
     const parser = new XMLParser();
     const parsed = parser.parse(response.data) as IsoCurrenciesXMLResponse;
     const currencies: IsoCurrencies = {};

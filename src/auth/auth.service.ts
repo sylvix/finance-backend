@@ -45,7 +45,7 @@ export class AuthService {
 
   async getAccessToken(user: User) {
     const payload: AccessTokenPayload = { userId: user.id, groupId: user.defaultGroupId };
-    const expirationTime = this.configService.get('ACCESS_TOKEN_EXPIRATION_TIME');
+    const expirationTime = this.configService.get<string>('ACCESS_TOKEN_EXPIRATION_TIME') || '300';
 
     return await this.jwtService.signAsync(payload, {
       secret: this.configService.get('ACCESS_TOKEN_SECRET'),
@@ -65,8 +65,8 @@ export class AuthService {
 
   async getRefreshToken(userId: number, userAgent: string) {
     const clientInfo = this.deviceDetectorService.parse(userAgent);
-    const expirationTime = this.configService.get('REFRESH_TOKEN_EXPIRATION_TIME');
-    const expiresAt = new Date(new Date().getTime() + expirationTime * 1000);
+    const expirationTime = this.configService.get<string>('REFRESH_TOKEN_EXPIRATION_TIME') || '2592000';
+    const expiresAt = new Date(new Date().getTime() + Number(expirationTime) * 1000);
 
     const userToken = await this.userTokensService.create({
       user: { id: userId },
@@ -95,6 +95,8 @@ export class AuthService {
       });
 
       await this.userTokensService.removeById(tokenId);
-    } catch (e) {}
+    } catch {
+      /* empty */
+    }
   }
 }

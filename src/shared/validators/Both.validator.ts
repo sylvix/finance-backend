@@ -8,8 +8,8 @@ import {
 
 @ValidatorConstraint({ name: 'Both', async: true })
 export class BothConstraint implements ValidatorConstraintInterface {
-  async validate(value: unknown | null, args: ValidationArguments): Promise<boolean> {
-    const [otherFieldName] = args.constraints;
+  validate(value: unknown, args: ValidationArguments): boolean {
+    const [otherFieldName] = args.constraints as string[];
 
     const exceptFieldValue = (args.object as Record<string, unknown>)[otherFieldName];
 
@@ -21,7 +21,7 @@ export class BothConstraint implements ValidatorConstraintInterface {
   }
 
   defaultMessage(args: ValidationArguments) {
-    const otherFieldName = args.constraints[0];
+    const otherFieldName = args.constraints[0] as string;
     return `Both ${args.property} and ${otherFieldName} should not be empty`;
   }
 }

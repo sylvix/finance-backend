@@ -122,7 +122,7 @@ export class GroupsService {
   }
 
   async revoke(userId: number, groupId: number, revokedUserId: number) {
-    const revokedUser = this.usersService.findById(revokedUserId);
+    const revokedUser = await this.usersService.findById(revokedUserId);
 
     if (!revokedUser) {
       throw new NotFoundException('This user does not exist anymore');

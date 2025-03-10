@@ -40,7 +40,6 @@ export class SalykParser {
 
   parsedResults: string[] = [];
   total = 0;
-  paymentMethod: null | string = null;
   tempResultString = '';
   currentStringToConcat = false;
 
@@ -57,7 +56,7 @@ export class SalykParser {
   addResult(acc: FinalResults) {
     const results = itemPartsRegex.exec(this.tempResultString);
 
-    results &&
+    if (results) {
       acc.items.push({
         name: <string>results.groups?.name,
         count: parseFloat(results.groups?.count || '0'),
@@ -65,6 +64,7 @@ export class SalykParser {
         total: parseFloat(results.groups?.total || '0'),
         position: parseFloat(results.groups?.position || '0'),
       });
+    }
 
     this.parsedResults.push(this.tempResultString);
     this.tempResultString = '';

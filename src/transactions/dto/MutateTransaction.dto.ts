@@ -8,7 +8,7 @@ import { IsPositiveIntOrNull } from '../../shared/validators/IsPositiveIntOrNull
 export class MutateTransactionDto {
   @IsNotEmpty()
   @IsDate()
-  @Transform(({ value }) => new Date(value))
+  @Transform(({ value }) => new Date(value as string))
   conductedAt: Date;
 
   @Both('incomingAmount')
@@ -23,11 +23,11 @@ export class MutateTransactionDto {
   @IsPositiveIntOrNull()
   outgoingAccountId?: number | null;
 
-  @ValidateIf((object, value) => typeof value === 'number')
+  @ValidateIf((_object, value) => typeof value === 'number')
   @Min(1)
   incomingAmount?: number | null;
 
-  @ValidateIf((object, value) => typeof value === 'number')
+  @ValidateIf((_object, value) => typeof value === 'number')
   @Min(1)
   outgoingAmount?: number | null;
 

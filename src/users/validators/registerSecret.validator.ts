@@ -12,7 +12,7 @@ import { ConfigService } from '@nestjs/config';
 export class RegisterSecretConstraint implements ValidatorConstraintInterface {
   constructor(private readonly configService: ConfigService) {}
 
-  async validate(secret: string) {
+  validate(secret: string) {
     const validSecret = this.configService.get<string>('REGISTER_INVITE_SECRET');
 
     return secret === validSecret;

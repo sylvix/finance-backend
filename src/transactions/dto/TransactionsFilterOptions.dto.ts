@@ -13,13 +13,13 @@ export class TransactionsFilterOptionsDto extends PageOptionsDto {
   @IsDate()
   @IsOptional()
   @ApiPropertyOptional()
-  @Transform(({ value }) => (value ? new Date(value) : undefined))
+  @Transform(({ value }) => (value ? new Date(value as string) : undefined))
   conductedAtStart?: Date;
 
   @IsDate()
   @IsOptional()
   @ApiPropertyOptional()
   @IsDate()
-  @Transform(({ value }) => (value ? new Date(value) : undefined))
+  @Transform(({ value }) => (value ? new Date(value as string) : undefined))
   conductedAtEnd?: Date;
 }

@@ -1,4 +1,5 @@
 import { ExecutionContext, Injectable } from '@nestjs/common';
+import { Request } from 'express';
 import { GroupsService } from '../groups/groups.service';
 import { AccessTokenPayload } from './types';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -16,16 +17,15 @@ export class UserGroupGuard extends JwtAuthGuard {
       return false;
     }
 
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<Request>();
     const payload = request.user as AccessTokenPayload;
 
     const isInGroup = await this.groupsService.userIsInGroup(payload.userId, payload.groupId);
-    console.log(isInGroup);
 
     if (!isInGroup) {
       try {
         await this.groupsService.resetDefaultGroup(payload.userId);
-      } catch (e) {
+      } catch {
         /* empty */
       }
 

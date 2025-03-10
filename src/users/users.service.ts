@@ -61,9 +61,11 @@ export class UsersService {
 
   private async removeAvatar(filename: string) {
     try {
-      const basePath = this.configService.get('MEDIA_DEST');
+      const basePath = this.configService.get<string>('MEDIA_DEST') || './public';
       await fs.unlink(join(basePath, filename));
-    } catch {}
+    } catch {
+      /* empty */
+    }
   }
 
   async updateDefaultGroup(userId: number, groupId: number) {

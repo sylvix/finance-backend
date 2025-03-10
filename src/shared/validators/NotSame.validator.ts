@@ -8,15 +8,15 @@ import {
 
 @ValidatorConstraint({ name: 'NotSame', async: false })
 export class NotSameConstraint implements ValidatorConstraintInterface {
-  async validate(value: unknown | null, args: ValidationArguments): Promise<boolean> {
-    const [otherFieldName] = args.constraints;
+  validate(value: unknown, args: ValidationArguments): boolean {
+    const [otherFieldName] = args.constraints as string[];
 
     const otherFieldValue = (args.object as Record<string, unknown>)[otherFieldName];
     return value !== otherFieldValue;
   }
 
   defaultMessage(args: ValidationArguments) {
-    const otherFieldName = args.constraints[0];
+    const otherFieldName = args.constraints[0] as string;
     return `${args.property} should not be the same as ${otherFieldName}`;
   }
 }
