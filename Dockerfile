@@ -1,4 +1,4 @@
-FROM node:18.14.2-alpine AS build
+FROM node:22.14.0-alpine AS build
 
 USER node
 
@@ -28,7 +28,7 @@ RUN npm pkg delete scripts.prepare
 # Leave only production dependencies to create smaller image
 RUN npm ci --omit=dev && npm cache clean --force
 
-FROM node:18.14.2-alpine
+FROM node:22.14.0-alpine
 
 # Copy the bundled code from the build stage to the production image
 COPY --chown=node:node --from=build /app/node_modules ./node_modules
