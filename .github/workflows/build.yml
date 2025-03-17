@@ -38,15 +38,14 @@ jobs:
           ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
       - name: Build Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: false
-          load: true
-          tags: ${{ env.IMAGE_NAME }}:latest
-          build-args: |
-            API_URL=${{ secrets.API_URL }}
-          outputs: type=docker,dest=${{ env.SAFE_FILENAME }}.tar.gz
+        run: |
+          docker build \
+            --build-arg API_URL=${{ secrets.API_URL }} \
+            -t ${{ env.IMAGE_NAME }}:latest \
+            .
+          
+          # Export the image to a file
+          docker save ${{ env.IMAGE_NAME }}:latest | gzip > ${{ env.SAFE_FILENAME }}.tar.gz
 
       - name: Transfer and load image
         run: |
