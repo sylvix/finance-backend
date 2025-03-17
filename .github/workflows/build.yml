@@ -1,4 +1,4 @@
-name: Build and push image
+name: Build and deploy image
 
 on:
   push:
@@ -7,34 +7,57 @@ on:
   workflow_dispatch:
 
 env:
-  REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}-${{github.ref_name}}
+  SSH_AUTH_SOCK: /tmp/ssh_agent.sock
 
 jobs:
-  build-and-push-image:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Log in to the Container registry
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up variables
+        run: echo "SAFE_FILENAME=$(echo '${{ env.IMAGE_NAME }}' | tr '/:' '-')" >> $GITHUB_ENV
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v3
+      - name: Set up SSH with password
+        run: |
+          mkdir -p ~/.ssh
+          
+          # Start ssh-agent
+          ssh-agent -a ${{ env.SSH_AUTH_SOCK }} > /dev/null
+          
+          # Create askpass script
+          echo 'echo "${{ secrets.SSH_KEY_PASSWORD }}"' > ~/.ssh_askpass && chmod +x ~/.ssh_askpass
+          
+          # Add the key with passphrase
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' | DISPLAY=None SSH_ASKPASS=~/.ssh_askpass ssh-add - >/dev/null
+          
+          # Add host to known hosts
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          push: false
+          load: true
+          tags: ${{ env.IMAGE_NAME }}:latest
+          build-args: |
+            API_URL=${{ secrets.API_URL }}
+          outputs: type=docker,dest=${{ env.SAFE_FILENAME }}.tar.gz
+
+      - name: Transfer and load image
+        run: |
+          # Transfer the image
+          scp -P ${{ secrets.SSH_PORT }} "${{ env.SAFE_FILENAME }}.tar.gz" ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:~/
+          
+          # Load the image and clean up
+          ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "
+            docker load < ~/${{ env.SAFE_FILENAME }}.tar.gz && \
+            rm ~/${{ env.SAFE_FILENAME }}.tar.gz
+          "
 
       - name: Trigger deploy
         run: |
