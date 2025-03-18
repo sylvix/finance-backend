@@ -40,7 +40,6 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
-            --build-arg API_URL=${{ secrets.API_URL }} \
             -t ${{ env.IMAGE_NAME }}:latest \
             .
           
