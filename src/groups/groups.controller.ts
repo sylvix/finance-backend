@@ -24,6 +24,7 @@ import { InviteToGroupDto } from './dto/inviteToGroup.dto';
 import { UserToGroup } from './userToGroup.entity';
 import { RevokeFromGroupDto } from './dto/revokeFromGroup.dto';
 import { EditGroupDto } from './dto/editGroup.dto';
+import { GroupOwnershipTransferDto } from './dto/groupOwnershipTransfer.dto';
 
 @ApiTags('groups')
 @ApiBearerAuth('access-token')
@@ -153,6 +154,31 @@ export class GroupsController {
   })
   async remove(@TokenPayload() { userId }: AccessTokenPayload, @Param('id', ParseIntPipe) groupId: number) {
     await this.groupsService.remove(userId, groupId);
+  }
+
+  @Post(':id/transfer-ownership')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Transfer group ownership to another user',
+  })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Ownership transferred successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'User is not the owner of this group',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'New owner is not a member of this group',
+  })
+  async transferOwnership(
+    @TokenPayload() { userId }: AccessTokenPayload,
+    @Param('id', ParseIntPipe) groupId: number,
+    @Body() { newOwnerId }: GroupOwnershipTransferDto,
+  ) {
+    await this.groupsService.transferOwnership(userId, { groupId, newOwnerId });
   }
 
   @Post(':id/leave')

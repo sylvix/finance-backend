@@ -10,6 +10,7 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  Post,
   SerializeOptions,
   UploadedFile,
   UseFilters,
@@ -38,12 +39,11 @@ import { UserTokensService } from './userTokens.service';
 import { UserToken } from './userToken.entity';
 import { EditPasswordDto } from './dto/editPassword.dto';
 import { UserGroupGuard } from '../auth/userGroup.guard';
+import { DeleteAccountDto } from './dto/deleteAccount.dto';
 
 @ApiTags('users')
 @ApiBearerAuth('access-token')
-@ApiUnauthorizedResponse({
-  description: 'Incorrect access token',
-})
+@ApiUnauthorizedResponse({ description: 'Invalid or expired access token' })
 @Controller('users')
 @UseInterceptors(ClassSerializerInterceptor)
 export class UsersController {
@@ -53,14 +53,9 @@ export class UsersController {
   ) {}
 
   @Get('me')
-  @SerializeOptions({
-    groups: ['user'],
-  })
+  @SerializeOptions({ groups: ['user'] })
   @UseGuards(UserGroupGuard)
-  @ApiOperation({
-    summary: 'Get current user information',
-    description: 'Returns current user information based on access token',
-  })
+  @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({
     status: HttpStatus.OK,
     type: User,
@@ -74,13 +69,9 @@ export class UsersController {
   @UseGuards(UserGuard)
   @UseInterceptors(FileInterceptor('avatar'))
   @UseFilters(FileRemovalFilter)
-  @SerializeOptions({
-    groups: ['user'],
-  })
+  @SerializeOptions({ groups: ['user'] })
   @ApiConsumes('multipart/form-data')
-  @ApiOperation({
-    summary: 'Edit current user profile',
-  })
+  @ApiOperation({ summary: 'Update user profile' })
   @ApiResponse({
     status: HttpStatus.OK,
     type: User,
@@ -116,9 +107,7 @@ export class UsersController {
 
   @Get('tokens')
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({
-    summary: 'Get all tokens information of currently logged in user',
-  })
+  @ApiOperation({ summary: 'List user refresh tokens' })
   @ApiResponse({
     status: HttpStatus.OK,
     type: UserToken,
@@ -132,16 +121,14 @@ export class UsersController {
   @Delete('/tokens/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({
-    summary: 'Delete one UserToken by id',
-  })
+  @ApiOperation({ summary: 'Revoke specific UserToken' })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
-    description: 'Token was successfully deleted',
+    description: 'UserToken revoked successfully',
   })
   @ApiResponse({
     status: HttpStatus.FORBIDDEN,
-    description: 'This token does not belong to current user or does not exist',
+    description: 'Token not found or does not belong to user',
   })
   async removeToken(@Param('id', ParseIntPipe) id: number, @TokenPayload() { userId }: AccessTokenPayload) {
     const result = await this.userTokensService.removeByUserIdAndId(id, userId);
@@ -154,14 +141,28 @@ export class UsersController {
   @Delete('/allTokens')
   @HttpCode(HttpStatus.UNAUTHORIZED)
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({
-    summary: 'Delete all UserTokens of currently logged in user, including current',
-  })
+  @ApiOperation({ summary: 'Revoke all UserTokens' })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
-    description: 'All tokens were deleted, forcing logout',
+    description: 'All UserTokens revoked, user logged out',
   })
   async removeAll(@TokenPayload() { userId }: AccessTokenPayload) {
     return this.userTokensService.removeAllByUserId(userId);
+  }
+
+  @Post('delete/me')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(UserGuard)
+  @ApiOperation({
+    summary: 'Delete user account',
+    description:
+      'Delete user account and all associated groups, transfer if needed. Have to be POST so we can send some additional data with the request',
+  })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Account deleted successfully',
+  })
+  async deleteAccount(@CurrentUser() user: User, @Body() deleteAccountDto: DeleteAccountDto) {
+    await this.usersService.deleteAccount(user, deleteAccountDto);
   }
 }

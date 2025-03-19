@@ -14,6 +14,7 @@ import { User } from '../users/user.entity';
 import { CreateGroupDto } from './dto/createGroup.dto';
 import { UsersService } from '../users/users.service';
 import { EditGroupDto } from './dto/editGroup.dto';
+import { GroupOwnershipTransferDto } from './dto/groupOwnershipTransfer.dto';
 
 @Injectable()
 export class GroupsService {
@@ -247,5 +248,41 @@ export class GroupsService {
     }
 
     return await this.userToGroupsRepository.remove(userToGroup);
+  }
+
+  async transferOwnership(currentOwnerId: number, transferData: GroupOwnershipTransferDto) {
+    const currentOwnerToGroup = await this.userToGroupsRepository.findOne({
+      where: { groupId: transferData.groupId, userId: currentOwnerId, role: UserInGroupRole.OWNER },
+    });
+
+    if (!currentOwnerToGroup) {
+      throw new UnauthorizedException('Current user is not the owner of this group');
+    }
+
+    const newOwnerToGroup = await this.userToGroupsRepository.findOne({
+      where: { groupId: transferData.groupId, userId: transferData.newOwnerId },
+    });
+
+    if (!newOwnerToGroup) {
+      throw new BadRequestException('New owner is not a member of this group');
+    }
+
+    currentOwnerToGroup.role = UserInGroupRole.MEMBER;
+    newOwnerToGroup.role = UserInGroupRole.OWNER;
+
+    await this.userToGroupsRepository.save([currentOwnerToGroup, newOwnerToGroup]);
+  }
+
+  async findGroupsWhereUserIsOwner(userId: number) {
+    const userToGroups = await this.userToGroupsRepository.find({
+      where: { userId, role: UserInGroupRole.OWNER },
+      relations: { group: { userToGroups: true } },
+    });
+
+    return userToGroups.map((utg) => utg.group);
+  }
+
+  async removeGroupsByIds(groupIds: number[]) {
+    await this.groupsRepository.delete({ id: In(groupIds) });
   }
 }

@@ -28,12 +28,12 @@ export class User {
   @CreateDateColumn()
   createdAt: Date;
 
-  @Column()
+  @Column({ nullable: true })
   @Expose({ groups: ['user'] })
   defaultGroupId: number;
 
   @ApiHideProperty()
-  @ManyToOne(() => Group)
+  @ManyToOne(() => Group, { onDelete: 'SET NULL' })
   defaultGroup: Group;
 
   @Exclude()
